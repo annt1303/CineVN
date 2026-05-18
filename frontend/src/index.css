@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Outfit', sans-serif;
+  --color-background: #0f1115;
+  --color-foreground: #ffffff;
+  --color-primary: #e50914;
+  --color-primary-hover: #b80710;
+  --color-secondary: #1f232b;
+  --color-border: #2a2e37;
+  --color-accent: #38bdf8;
+}
+
+@layer base {
+  :root {
+    --background: 222 17% 7%;
+    --foreground: 0 0% 100%;
+    
+    --card: 222 17% 12%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 222 17% 12%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 357 93% 47%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 16% 22%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 215 28% 17%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 357 93% 47%;
+    
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    background-color: #0f1115;
+    color: #ffffff;
+  }
+  
+  /* Custom scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0f1115;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2e37;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3f4a;
+  }
+}
+
+.glass {
+  background: rgba(31, 35, 43, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(31,35,43,0.6) 0%, rgba(15,17,21,0.8) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #ff416c, #ff4b2b);
+}
+
+.screen-glow {
+  box-shadow: 0 0 50px 10px rgba(56, 189, 248, 0.15);
+  border-bottom: 2px solid rgba(56, 189, 248, 0.5);
+  transform: perspective(300px) rotateX(-5deg);
+}
+
+/* Seat types */
+.seat-vip {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.seat-premium {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+.seat-standard {
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+.seat-booked {
+  background: #1f2937;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.seat-selected {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
