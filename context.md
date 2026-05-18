@@ -107,3 +107,67 @@ Thư mục gốc: `frontend/src`
 - `context/`: React Context API / Zustand (Quản lý State toàn cục)
 - `routes/`: Cấu hình React Router (Public routes, Private routes, Admin routes)
 - `utils/`: Các hàm tiện ích (formatters, cn.js...)
+
+---
+
+## 6. Quy chuẩn Phát triển Backend (Backend Design Standards)
+Để đồng bộ kiến trúc hệ thống và đảm bảo khả năng mở rộng, toàn bộ code backend bắt buộc phải tuân thủ các chuẩn mực sau:
+
+### 6.1. Quản lý Thực thể (Database Entities & BaseEntity)
+Mọi JPA Entity đại diện cho bảng cơ sở dữ liệu bắt buộc phải kế thừa class [BaseEntity.java](file:///d:/Projects/vncinema/src/main/java/com/cinema/vncinema/entity/BaseEntity.java).
+- Không tự định nghĩa lại các thuộc tính cơ bản như `id`, `createdAt`, và `updatedAt`.
+- Thời gian tạo (`createdAt`) và cập nhật (`updatedAt`) sẽ được tự động tính toán qua các lifecycle hooks `@PrePersist` và `@PreUpdate`.
+- **Ví dụ minh họa:**
+```java
+package com.cinema.vncinema.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.*;
+
+@Entity
+@Table(name = "movies")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Movie extends BaseEntity {
+    private String title;
+    private String description;
+    private Integer duration;
+}
+```
+
+### 6.2. Cấu trúc Phản hồi API Đồng nhất (ApiResponse)
+Tất cả các REST Controller khi trả dữ liệu về phía Frontend bắt buộc phải đóng gói kết quả trong wrapper [ApiResponse.java](file:///d:/Projects/vncinema/src/main/java/com/cinema/vncinema/dto/response/ApiResponse.java).
+- Mã code thành công mặc định là `1000`.
+- Sử dụng các static helper methods `ApiResponse.success(...)` để trả kết quả thành công và `ApiResponse.error(...)` cho kết quả thất bại.
+- **Ví dụ Controller:**
+```java
+@RestController
+@RequestMapping("/api/movies")
+public class MovieController {
+
+    @GetMapping("/{id}")
+    public ApiResponse<MovieResponse> getMovie(@PathVariable Long id) {
+        MovieResponse movie = movieService.getMovieById(id);
+        return ApiResponse.success("Lấy thông tin phim thành công", movie);
+    }
+}
+```
+
+### 6.3. Quản lý Ngoại lệ Tập trung (Global Exception Handling)
+Hệ thống sử dụng cơ chế xử lý lỗi tập trung thông qua [GlobalExceptionHandler.java](file:///d:/Projects/vncinema/src/main/java/com/cinema/vncinema/exception/GlobalExceptionHandler.java):
+1. **Ngoại lệ nghiệp vụ (Business Errors):** Sử dụng [AppException.java](file:///d:/Projects/vncinema/src/main/java/com/cinema/vncinema/exception/AppException.java) kết hợp với enum [ErrorCode.java](file:///d:/Projects/vncinema/src/main/java/com/cinema/vncinema/exception/ErrorCode.java). Khi xảy ra lỗi logic, chỉ cần ném ra `AppException`.
+   ```java
+   if (!userRepository.existsById(userId)) {
+       throw new AppException(ErrorCode.USER_NOT_EXISTED);
+   }
+   ```
+2. **Ngoại lệ Validation:** Các ràng buộc dữ liệu DTO (như `@NotBlank`, `@Size`, `@Min`, `@Max`) nếu thất bại sẽ được tự động bắt bởi handler và ánh xạ thành định dạng `ApiResponse` chuẩn. Có thể truyền tên enum của `ErrorCode` trực tiếp vào thuộc tính `message` của annotation validation để trả về mã code tùy chỉnh:
+   ```java
+   @Size(min = 8, message = "INVALID_PASSWORD")
+   private String password;
+   ```
+
