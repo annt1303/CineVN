@@ -60,12 +60,13 @@ Với một hệ thống đặt vé xem phim, tính toàn vẹn của dữ liệ
 
 ---
 
-## 4. Cấu trúc Docker dự kiến (Docker Compose)
-Dự án sẽ có một file `docker-compose.yml` định nghĩa các container:
-1. `postgres-db`: Container chứa CSDL PostgreSQL.
-2. `redis-cache`: Container chứa Redis.
-3. `spring-backend`: Container chạy file `.jar` của Spring Boot (kết nối với Postgres và Redis).
-4. `react-frontend`: Container chạy Nginx để serve ứng dụng React.js đã được build.
+## 4. Cấu trúc Docker (Docker Compose)
+Hệ thống đã cấu hình file [docker-compose.yml](file:///d:/Projects/vncinema/docker-compose.yml) ở thư mục gốc:
+- [x] `postgres-db`: Container PostgreSQL 16 (Đang chạy - Port `5432`).
+- [x] `redis-cache`: Container Redis 7.2 (Đang chạy - Port `6379`).
+- [ ] `spring-backend`: Container chạy Spring Boot (Đã định nghĩa cấu trúc mẫu trong `docker-compose.yml`).
+- [ ] `react-frontend`: Container chạy Nginx serve ứng dụng React.js (Đã định nghĩa cấu trúc mẫu trong `docker-compose.yml`).
+
 
 ---
 
