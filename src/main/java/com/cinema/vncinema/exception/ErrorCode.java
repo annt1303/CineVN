@@ -21,6 +21,11 @@ public enum ErrorCode {
     REFRESH_TOKEN_EXPIRED(1013, "Refresh token has expired, please log in again", HttpStatus.UNAUTHORIZED),
     INVALID_OLD_PASSWORD(1014, "Current password is incorrect", HttpStatus.BAD_REQUEST),
     SAME_PASSWORD(1015, "New password must be different from the current password", HttpStatus.BAD_REQUEST),
+    CINEMA_EXISTED(1016, "Cinema with this name already exists", HttpStatus.BAD_REQUEST),
+    CINEMA_NOT_FOUND(1017, "Cinema not found", HttpStatus.NOT_FOUND),
+    ROOM_EXISTED(1018, "Screen room with this name already exists in this cinema", HttpStatus.BAD_REQUEST),
+    ROOM_NOT_FOUND(1019, "Screen room not found", HttpStatus.NOT_FOUND),
+    INVALID_ROOM_SEAT_CONFIGURATION(1020, "Invalid seat layout configuration", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

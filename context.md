@@ -52,7 +52,7 @@ Với một hệ thống đặt vé xem phim, tính toàn vẹn của dữ liệ
 
 ### 3.3. Dành cho Quản trị viên (Admin Dashboard - Mảng UI mới)
 *Hệ thống cần một trang quản trị riêng để quản lý:*
-- [ ] **Quản lý Rạp & Phòng chiếu**: Thêm/sửa/xóa rạp, tạo sơ đồ ghế (cấu hình số hàng, số cột, loại ghế).
+- [x] **Quản lý Rạp & Phòng chiếu**: Thêm/sửa/xóa rạp, tạo sơ đồ ghế (cấu hình số hàng, số cột, loại ghế).
 - [ ] **Quản lý Phim**: Cập nhật thông tin phim, poster, trailer, thể loại.
 - [ ] **Quản lý Lịch chiếu**: Lên lịch chiếu cho từng phim tại từng phòng chiếu vào các khung giờ khác nhau.
 - [ ] **Quản lý Khuyến mãi**: Tạo mã giảm giá (Coupon), quản lý chiến dịch marketing.

@@ -6,6 +6,10 @@ import MovieDetail from "./pages/MovieDetail";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/public/Profile";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminRoute from "./routes/AdminRoute";
+import Dashboard from "./pages/admin/Dashboard";
+import CinemaManagement from "./pages/admin/CinemaManagement";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -21,6 +25,20 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
+              
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="cinemas" element={<CinemaManagement />} />
+              </Route>
+
               {/* Fallback route */}
               <Route path="*" element={<Home />} />
             </Routes>

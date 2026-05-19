@@ -1,0 +1,32 @@
+-- V2__create_cinema_tables.sql
+
+CREATE TABLE cinemas (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE screen_rooms (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    cinema_id BIGINT NOT NULL REFERENCES cinemas(id) ON DELETE CASCADE,
+    total_seats INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE seats (
+    id BIGSERIAL PRIMARY KEY,
+    screen_room_id BIGINT NOT NULL REFERENCES screen_rooms(id) ON DELETE CASCADE,
+    row_name VARCHAR(10) NOT NULL,
+    seat_number INT NOT NULL,
+    seat_type VARCHAR(50) NOT NULL DEFAULT 'NORMAL', -- 'NORMAL', 'VIP', 'COUPLE'
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_room_seat UNIQUE (screen_room_id, row_name, seat_number)
+);
