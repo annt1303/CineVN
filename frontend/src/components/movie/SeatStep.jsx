@@ -3,6 +3,8 @@ import { cn } from "../../utils/cn";
 import SeatMap from "./SeatMap";
 
 export default function SeatStep({
+  seats = [],
+  loading = false,
   selectedSeats,
   handleSeatSelect,
   totalPrice,
@@ -17,16 +19,23 @@ export default function SeatStep({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
     >
-      <div className="glass-card rounded-3xl p-6 md:p-8">
-        <SeatMap selectedSeats={selectedSeats} onSeatSelect={handleSeatSelect} />
-      </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-secondary/20 rounded-3xl border border-white/5">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <span className="text-zinc-500 text-sm mt-3">Đang tải sơ đồ ghế...</span>
+        </div>
+      ) : (
+        <div className="glass-card rounded-3xl p-6 md:p-8">
+          <SeatMap seats={seats} selectedSeats={selectedSeats} onSeatSelect={handleSeatSelect} />
+        </div>
+      )}
 
       <div className="fixed bottom-0 left-0 right-0 bg-secondary/95 backdrop-blur-xl border-t border-white/10 p-4 md:p-6 z-40 transform translate-y-0 shadow-2xl">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex-1 w-full">
             <div className="text-sm text-gray-400 mb-1">Ghế đã chọn ({selectedSeats.length})</div>
             <div className="font-semibold text-white truncate max-w-md">
-              {selectedSeats.length > 0 ? selectedSeats.map(s => s.id).join(", ") : "Chưa có ghế nào được chọn"}
+              {selectedSeats.length > 0 ? selectedSeats.map(s => `${s.rowName}${s.seatNumber}`).join(", ") : "Chưa có ghế nào được chọn"}
             </div>
           </div>
           

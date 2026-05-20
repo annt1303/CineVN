@@ -6,11 +6,19 @@ export default function ShowtimeStep({
   dates,
   selectedDate,
   setSelectedDate,
-  showtimes,
+  showtimes = [],
   selectedShowtime,
   setSelectedShowtime,
-  onNext
+  onNext,
+  loading = false
 }) {
+  // Group showtimes by cinema name
+  const grouped = showtimes.reduce((acc, st) => {
+    if (!acc[st.cinemaName]) acc[st.cinemaName] = [];
+    acc[st.cinemaName].push(st);
+    return acc;
+  }, {});
+
   return (
     <motion.div
       key="step1"
@@ -22,13 +30,16 @@ export default function ShowtimeStep({
       {/* Date Selection */}
       <div>
         <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-          <Calendar size={20} className="text-primary" /> Chọn ngày
+          <Calendar size={20} className="text-primary" /> Chọn ngày chiếu
         </h3>
         <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
           {dates.map((item, idx) => (
             <button
               key={idx}
-              onClick={() => setSelectedDate(idx)}
+              onClick={() => {
+                setSelectedDate(idx);
+                setSelectedShowtime(null); // Reset selected showtime when date changes
+              }}
               className={cn(
                 "shrink-0 w-24 py-3 rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer",
                 selectedDate === idx 
@@ -43,28 +54,56 @@ export default function ShowtimeStep({
         </div>
       </div>
 
-      {/* Showtime Selection */}
+      {/* Showtime Selection grouped by Cinema */}
       <div>
         <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-          <MapPin size={20} className="text-primary" /> CineVN Trần Duy Hưng
+          <MapPin size={20} className="text-primary" /> Chọn rạp và suất chiếu
         </h3>
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {showtimes.map((st) => (
-            <button
-              key={st.id}
-              disabled={!st.available}
-              onClick={() => setSelectedShowtime(st.id)}
-              className={cn(
-                "py-3 rounded-xl font-medium transition-all border cursor-pointer",
-                !st.available ? "bg-white/5 text-gray-600 border-transparent cursor-not-allowed" :
-                selectedShowtime === st.id ? "bg-primary text-white border-primary shadow-lg shadow-primary/30" :
-                "bg-secondary text-gray-300 border-white/10 hover:border-white/30 hover:bg-white/5"
-              )}
-            >
-              {st.time}
-            </button>
-          ))}
-        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : showtimes.length === 0 ? (
+          <div className="bg-secondary/40 border border-white/5 rounded-2xl p-8 text-center text-gray-500">
+            Không có suất chiếu nào vào ngày này. Vui lòng chọn ngày khác!
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(grouped).map(([cinemaName, list]) => (
+              <div key={cinemaName} className="bg-secondary/35 border border-white/5 rounded-2xl p-5 space-y-4">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="w-1.5 h-3 bg-primary rounded-full"></span>
+                  {cinemaName}
+                </h4>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                  {list.map((st) => {
+                    const time = st.startTime.substring(11, 16);
+                    const format = st.movieFormat.replace("FORMAT_", "");
+                    const isSelected = selectedShowtime && selectedShowtime.id === st.id;
+
+                    return (
+                      <button
+                        key={st.id}
+                        onClick={() => setSelectedShowtime(st)}
+                        className={cn(
+                          "py-2.5 px-3 rounded-xl transition-all border text-center cursor-pointer flex flex-col items-center justify-center",
+                          isSelected 
+                            ? "bg-primary text-white border-primary shadow-lg shadow-primary/30" 
+                            : "bg-secondary text-gray-300 border-white/10 hover:border-white/30 hover:bg-white/5"
+                        )}
+                      >
+                        <span className="text-sm font-bold">{time}</span>
+                        <span className="text-[10px] opacity-60 font-mono mt-0.5">{format} - {st.screenRoomName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Next Action */}

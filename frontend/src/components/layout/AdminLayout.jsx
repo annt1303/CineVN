@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, Landmark, Film } from "lucide-react";
+import { LayoutDashboard, Landmark, Film, Calendar } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
 export default function AdminLayout() {
@@ -10,6 +10,7 @@ export default function AdminLayout() {
     { name: "Tổng quan", path: "/admin", icon: LayoutDashboard },
     { name: "Quản lý Rạp & Phòng", path: "/admin/cinemas", icon: Landmark },
     { name: "Quản lý Phim", path: "/admin/movies", icon: Film },
+    { name: "Lịch chiếu & Giá vé", path: "/admin/showtimes", icon: Calendar },
   ];
 
   return (

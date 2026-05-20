@@ -28,6 +28,13 @@ public enum ErrorCode {
     INVALID_ROOM_SEAT_CONFIGURATION(1020, "Invalid seat layout configuration", HttpStatus.BAD_REQUEST),
     MOVIE_EXISTED(1021, "Movie has already been imported", HttpStatus.BAD_REQUEST),
     MOVIE_NOT_FOUND(1022, "Movie not found", HttpStatus.NOT_FOUND),
+    SHOWTIME_NOT_FOUND(1023, "Showtime not found", HttpStatus.NOT_FOUND),
+    SHOWTIME_OVERLAP(1024, "Showtime overlaps with an existing screening in this room", HttpStatus.BAD_REQUEST),
+    PRICE_CONFIG_NOT_FOUND(1025, "Pricing configuration not found", HttpStatus.NOT_FOUND),
+    SEAT_TYPE_PRICE_NOT_FOUND(1026, "Seat type price configuration not found", HttpStatus.NOT_FOUND),
+    TICKET_NOT_FOUND(1027, "Ticket not found", HttpStatus.NOT_FOUND),
+    SEAT_NOT_FOUND(1028, "Seat not found", HttpStatus.NOT_FOUND),
+    SEAT_ALREADY_BOOKED(1029, "One or more selected seats have already been booked or are pending reservation", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

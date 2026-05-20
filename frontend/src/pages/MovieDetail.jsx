@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { movies, showtimes, formatCurrency } from "../data/mockData";
+import { movies, formatCurrency } from "../data/mockData";
 import { cn } from "../utils/cn";
+import { api } from "../services/api";
 
 // Modular Components
 import MovieHero from "../components/movie/MovieHero";
@@ -16,7 +17,13 @@ export default function MovieDetail() {
   const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [selectedDate, setSelectedDate] = useState(0);
+  const [showtimeList, setShowtimeList] = useState([]);
+  const [loadingShowtimes, setLoadingShowtimes] = useState(false);
+  
   const [selectedShowtime, setSelectedShowtime] = useState(null);
+  const [seatsData, setSeatsData] = useState([]);
+  const [loadingSeats, setLoadingSeats] = useState(false);
+  
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [step, setStep] = useState(1); // 1: Info & Showtime, 2: Seat Selection, 3: Checkout
 
@@ -26,8 +33,6 @@ export default function MovieDetail() {
     const foundMovie = movies.find(m => m.id === parseInt(id));
     if (foundMovie) setMovie(foundMovie);
   }, [id]);
-
-  if (!movie) return <div className="min-h-screen flex items-center justify-center text-white">Đang tải...</div>;
 
   // Generate some upcoming dates
   const dates = Array.from({ length: 7 }).map((_, i) => {
@@ -39,6 +44,50 @@ export default function MovieDetail() {
       dateString: d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
     };
   });
+
+  // Fetch showtimes for movie and date
+  useEffect(() => {
+    if (!movie) return;
+
+    const fetchShowtimes = async () => {
+      setLoadingShowtimes(true);
+      try {
+        const dateObj = dates[selectedDate].date;
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        const dateString = `${year}-${month}-${day}`;
+
+        const res = await api.get(`/api/public/showtimes/movie/${id}?date=${dateString}`);
+        setShowtimeList(res);
+      } catch (err) {
+        console.error("Không thể tải lịch chiếu:", err);
+      } finally {
+        setLoadingShowtimes(false);
+      }
+    };
+
+    fetchShowtimes();
+  }, [movie, selectedDate, id]);
+
+  // Fetch seat status for selected showtime when on step 2
+  useEffect(() => {
+    if (step === 2 && selectedShowtime) {
+      const fetchSeats = async () => {
+        setLoadingSeats(true);
+        try {
+          const res = await api.get(`/api/public/showtimes/${selectedShowtime.id}/seats`);
+          setSeatsData(res.seats || []);
+        } catch (err) {
+          console.error("Không thể tải sơ đồ ghế:", err);
+        } finally {
+          setLoadingSeats(false);
+        }
+      };
+
+      fetchSeats();
+    }
+  }, [selectedShowtime, step]);
 
   const handleSeatSelect = (seat) => {
     setSelectedSeats((prev) => {
@@ -56,6 +105,21 @@ export default function MovieDetail() {
   };
 
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+
+  const handlePayment = async () => {
+    if (selectedSeats.length === 0) return;
+    try {
+      await api.post("/api/public/tickets/book", {
+        showtimeId: selectedShowtime.id,
+        seatIds: selectedSeats.map(s => s.id)
+      });
+      setStep(3);
+    } catch (err) {
+      alert("Đặt vé thất bại: " + err.message);
+    }
+  };
+
+  if (!movie) return <div className="min-h-screen flex items-center justify-center text-white">Đang tải...</div>;
 
   return (
     <div className="min-h-screen pb-20">
@@ -108,21 +172,24 @@ export default function MovieDetail() {
                 dates={dates}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
-                showtimes={showtimes}
+                showtimes={showtimeList}
                 selectedShowtime={selectedShowtime}
                 setSelectedShowtime={setSelectedShowtime}
                 onNext={() => setStep(2)}
+                loading={loadingShowtimes}
               />
             )}
 
             {step === 2 && (
               <SeatStep
+                seats={seatsData}
+                loading={loadingSeats}
                 selectedSeats={selectedSeats}
                 handleSeatSelect={handleSeatSelect}
                 totalPrice={totalPrice}
                 formatCurrency={formatCurrency}
                 onBack={() => setStep(1)}
-                onNext={() => setStep(3)}
+                onNext={handlePayment}
               />
             )}
 
@@ -130,7 +197,7 @@ export default function MovieDetail() {
               <CheckoutStep
                 movie={movie}
                 selectedShowtime={selectedShowtime}
-                showtimes={showtimes}
+                showtimes={showtimeList}
                 selectedDate={selectedDate}
                 dates={dates}
                 selectedSeats={selectedSeats}
