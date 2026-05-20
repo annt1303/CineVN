@@ -183,6 +183,23 @@ export default function CinemaManagement() {
       };
     });
 
+    // Mark span placeholders for couple seats
+    room.seats.forEach((seat) => {
+      if (seat.seatType === "COUPLE") {
+        const colIdx = seat.gridColumn || seat.seatNumber;
+        const neighborIdx = colIdx + 1;
+        if (neighborIdx <= maxCol) {
+          grid[`${seat.rowName}_${neighborIdx}`] = {
+            ...grid[`${seat.rowName}_${neighborIdx}`],
+            isSeat: false,
+            isActive: false,
+            isSpanPlaceholder: true,
+            spanParent: `${seat.rowName}_${colIdx}`
+          };
+        }
+      }
+    });
+
     setRoomForm({
       name: room.name,
       rowsCount: maxRow,
@@ -242,32 +259,113 @@ export default function CinemaManagement() {
     const seat = seatsGrid[key];
     if (!seat) return;
 
-    let updated = { ...seat };
-    if (selectedTool === "INACTIVE") {
-      // Turn into corridor (completely remove seat)
-      updated.isSeat = false;
-      updated.isActive = false;
-    } else if (selectedTool === "LOCK") {
-      // Toggle active status (Lock / Unlock) for physical seats
-      if (seat.isSeat) {
-        updated.isActive = !updated.isActive;
-      } else {
-        // If it was a corridor, turn it into a locked seat
-        updated.isSeat = true;
-        updated.isActive = false;
-        updated.seatType = "NORMAL";
+    const [rowName, colStr] = key.split("_");
+    const c = parseInt(colStr);
+    let updatedGrid = { ...seatsGrid };
+
+    // Helper to clean up couple associations for a cell
+    const cleanCouple = (grid, rName, colIdx) => {
+      const currentKey = `${rName}_${colIdx}`;
+      const currentSeat = grid[currentKey];
+      if (!currentSeat) return;
+
+      // Case A: This seat was a COUPLE seat. Its partner was at colIdx + 1.
+      if (currentSeat.seatType === "COUPLE") {
+        const partnerKey = `${rName}_${colIdx + 1}`;
+        const partner = grid[partnerKey];
+        if (partner && partner.isSpanPlaceholder && partner.spanParent === currentKey) {
+          grid[partnerKey] = {
+            ...partner,
+            isSeat: true,
+            isActive: true,
+            seatType: "NORMAL",
+            isSpanPlaceholder: false,
+            spanParent: null
+          };
+        }
       }
+
+      // Case B: This seat was a placeholder for a COUPLE seat at colIdx - 1.
+      if (currentSeat.isSpanPlaceholder && currentSeat.spanParent) {
+        const parentKey = currentSeat.spanParent;
+        const parent = grid[parentKey];
+        if (parent && parent.seatType === "COUPLE") {
+          grid[parentKey] = {
+            ...parent,
+            seatType: "NORMAL"
+          };
+        }
+        grid[currentKey] = {
+          ...currentSeat,
+          isSeat: true,
+          isActive: true,
+          seatType: "NORMAL",
+          isSpanPlaceholder: false,
+          spanParent: null
+        };
+      }
+    };
+
+    if (selectedTool === "COUPLE") {
+      const neighborKey = `${rowName}_${c + 1}`;
+      const neighborSeat = seatsGrid[neighborKey];
+
+      if (!neighborSeat) {
+        alert("Không thể tạo ghế đôi ở mép ngoài cùng bên phải!");
+        return;
+      }
+
+      // Clean couple associations for both seats before pairing them
+      cleanCouple(updatedGrid, rowName, c);
+      cleanCouple(updatedGrid, rowName, c + 1);
+
+      // Now pair them
+      updatedGrid[key] = {
+        ...updatedGrid[key],
+        isSeat: true,
+        isActive: true,
+        seatType: "COUPLE",
+        isSpanPlaceholder: false,
+      };
+
+      updatedGrid[neighborKey] = {
+        ...updatedGrid[neighborKey],
+        isSeat: false,
+        isActive: false,
+        isSpanPlaceholder: true,
+        spanParent: key,
+      };
     } else {
-      // Paint brush: Set type and make physical, active
-      updated.isSeat = true;
-      updated.isActive = true;
-      updated.seatType = selectedTool;
+      // For any tool other than LOCK, if we are editing a seat, clean up its couple associations
+      if (selectedTool !== "LOCK") {
+        cleanCouple(updatedGrid, rowName, c);
+      }
+
+      let updated = { ...updatedGrid[key] };
+      if (selectedTool === "INACTIVE") {
+        // Turn into corridor (completely remove seat)
+        updated.isSeat = false;
+        updated.isActive = false;
+      } else if (selectedTool === "LOCK") {
+        // Toggle active status (Lock / Unlock) for physical seats
+        if (updated.isSeat) {
+          updated.isActive = !updated.isActive;
+        } else {
+          // If it was a corridor, turn it into a locked seat
+          updated.isSeat = true;
+          updated.isActive = false;
+          updated.seatType = "NORMAL";
+        }
+      } else {
+        // Paint brush: Set type and make physical, active
+        updated.isSeat = true;
+        updated.isActive = true;
+        updated.seatType = selectedTool;
+      }
+      updatedGrid[key] = updated;
     }
 
-    setSeatsGrid({
-      ...seatsGrid,
-      [key]: updated
-    });
+    setSeatsGrid(updatedGrid);
   };
 
   // Room submit (Save seats layout)

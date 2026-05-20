@@ -225,6 +225,11 @@ export default function RoomModal({
                             const seat = seatsGrid[key];
                             if (!seat) return null;
 
+                            // Skip rendering this column entirely if it is occupied by a COUPLE seat span
+                            if (seat.isSpanPlaceholder) {
+                              return null;
+                            }
+
                             let seatStyle = "";
                             if (seat.isSeat) {
                               if (!seat.isActive) {
@@ -232,7 +237,7 @@ export default function RoomModal({
                               } else if (seat.seatType === "VIP") {
                                 seatStyle = "bg-amber-500 border-amber-400 text-zinc-950 font-bold";
                               } else if (seat.seatType === "COUPLE") {
-                                seatStyle = "bg-rose-500 border-rose-400 text-white font-bold w-10 sm:w-12";
+                                seatStyle = "bg-rose-500 border-rose-400 text-white font-bold w-[54px] sm:w-[64px] flex-shrink-0";
                               } else {
                                 seatStyle = "bg-zinc-700 border-zinc-500 text-white";
                               }
@@ -244,7 +249,7 @@ export default function RoomModal({
                               <div
                                 key={key}
                                 onClick={() => handleSeatClick(key)}
-                                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg border text-[9px] sm:text-[10px] flex items-center justify-center transition-all cursor-pointer font-semibold ${seatStyle}`}
+                                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg border text-[9px] sm:text-[10px] flex items-center justify-center transition-all cursor-pointer font-semibold flex-shrink-0 ${seatStyle}`}
                                 title={`${rowName}-${getSeatNumber(rowName, colNumber)} (${seat.seatType})${!seat.isActive && seat.isSeat ? ' - Đang Khóa' : ''}`}
                               >
                                 {seat.isSeat ? (seat.isActive ? `${getSeatNumber(rowName, colNumber)}` : "🔒") : "X"}
