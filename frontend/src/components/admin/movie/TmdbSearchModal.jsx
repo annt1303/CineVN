@@ -14,6 +14,7 @@ export default function TmdbSearchModal({ isOpen, onClose, onImportSuccess }) {
   const [results, setResults]       = useState([]);
   const [loadingContent, setLoadingContent] = useState(false);
   const [importingId, setImportingId]       = useState(null);
+  const [importedIds, setImportedIds]       = useState(new Set());
   const [error, setError]           = useState(null);
   const [success, setSuccess]       = useState(null);
 
@@ -53,6 +54,7 @@ export default function TmdbSearchModal({ isOpen, onClose, onImportSuccess }) {
       setError(null);
       setSuccess(null);
       setActiveTab("search");
+      setImportedIds(new Set());
     }
   }, [isOpen]);
 
@@ -82,9 +84,10 @@ export default function TmdbSearchModal({ isOpen, onClose, onImportSuccess }) {
     setSuccess(null);
     try {
       await api.post(`/api/admin/movies/tmdb/import/${tmdbId}`);
+      setImportedIds((prev) => new Set(prev).add(tmdbId));
       setSuccess("Nhập phim thành công!");
       onImportSuccess();
-      setTimeout(() => onClose(), 1500);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message || "Không thể nhập phim. Có thể phim đã tồn tại.");
     } finally {
@@ -222,12 +225,20 @@ export default function TmdbSearchModal({ isOpen, onClose, onImportSuccess }) {
                     </div>
                     <button
                       onClick={() => handleImport(movie.id)}
-                      disabled={importingId === movie.id}
-                      className="w-full bg-zinc-800 hover:bg-rose-600 hover:border-rose-500 text-white border border-zinc-700 px-3 py-2 rounded-lg font-medium text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed group"
+                      disabled={importingId === movie.id || importedIds.has(movie.id)}
+                      className={`w-full border px-3 py-2 rounded-lg font-medium text-xs transition-all flex items-center justify-center gap-1.5 disabled:cursor-not-allowed group ${
+                        importedIds.has(movie.id)
+                          ? "bg-emerald-600/20 border-emerald-500/40 text-emerald-400 opacity-80"
+                          : "bg-zinc-800 hover:bg-rose-600 hover:border-rose-500 text-white border-zinc-700 disabled:opacity-50"
+                      }`}
                     >
                       {importingId === movie.id ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang nhập...
+                        </>
+                      ) : importedIds.has(movie.id) ? (
+                        <>
+                          <Star className="w-3.5 h-3.5 fill-current" /> Đã nhập
                         </>
                       ) : (
                         <>
