@@ -12,6 +12,8 @@ public interface MovieService {
     TmdbSearchResponse getUpcomingFromTmdb(int page);
     MovieResponse importMovieFromTmdb(Long tmdbId);
     List<MovieResponse> getAllMovies();
+    List<MovieResponse> getMoviesByStatus(String status);
+    MovieResponse getMovieById(Long id);
     MovieResponse createMovie(MovieRequest request);
     MovieResponse updateMovie(Long id, MovieRequest request);
     void deleteMovie(Long id);

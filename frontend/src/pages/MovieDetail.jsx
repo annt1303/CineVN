@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { movies, formatCurrency } from "../data/mockData";
+import { formatCurrency } from "../data/mockData";
 import { cn } from "../utils/cn";
 import { api } from "../services/api";
+import { mapDbMovieToFrontend } from "../utils/movieMapper";
 
 // Modular Components
 import MovieHero from "../components/movie/MovieHero";
@@ -30,8 +31,15 @@ export default function MovieDetail() {
   useEffect(() => {
     // Scroll to top
     window.scrollTo(0, 0);
-    const foundMovie = movies.find(m => m.id === parseInt(id));
-    if (foundMovie) setMovie(foundMovie);
+    const fetchMovie = async () => {
+      try {
+        const data = await api.get(`/api/public/movies/${id}`);
+        setMovie(mapDbMovieToFrontend(data));
+      } catch (error) {
+        console.error("Failed to fetch movie details:", error);
+      }
+    };
+    fetchMovie();
   }, [id]);
 
   // Generate some upcoming dates

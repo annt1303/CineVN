@@ -130,6 +130,22 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<MovieResponse> getMoviesByStatus(String status) {
+        return movieRepository.findByStatus(status).stream()
+                .map(movieMapper::toMovieResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MovieResponse getMovieById(Long id) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.MOVIE_NOT_FOUND));
+        return movieMapper.toMovieResponse(movie);
+    }
+
+    @Override
     @Transactional
     public MovieResponse createMovie(MovieRequest request) {
         Set<Genre> genres = new HashSet<>();

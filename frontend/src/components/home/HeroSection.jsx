@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export default function HeroSection({ movies }) {
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const heroMovies = movies ? movies.slice(0, 3) : [];
+  const heroMovies = movies ? movies.slice(0, 5) : [];
 
   // Track the scroll position of the page
   const { scrollY } = useScroll();

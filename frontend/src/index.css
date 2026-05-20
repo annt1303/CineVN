@@ -17,32 +17,32 @@
   :root {
     --background: 222 17% 7%;
     --foreground: 0 0% 100%;
-    
+
     --card: 222 17% 12%;
     --card-foreground: 0 0% 100%;
-    
+
     --popover: 222 17% 12%;
     --popover-foreground: 0 0% 100%;
-    
+
     --primary: 357 93% 47%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 220 16% 22%;
     --secondary-foreground: 0 0% 100%;
-    
+
     --muted: 215 28% 17%;
     --muted-foreground: 215 20% 65%;
-    
+
     --accent: 215 28% 17%;
     --accent-foreground: 0 0% 100%;
-    
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 215 28% 17%;
     --input: 215 28% 17%;
     --ring: 357 93% 47%;
-    
+
     --radius: 0.75rem;
   }
 }
@@ -51,23 +51,27 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
     background-color: #0f1115;
     color: #ffffff;
   }
-  
+
   /* Custom scrollbar for a premium feel */
   ::-webkit-scrollbar {
     width: 8px;
   }
+
   ::-webkit-scrollbar-track {
     background: #0f1115;
   }
+
   ::-webkit-scrollbar-thumb {
     background: #2a2e37;
     border-radius: 4px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: #3a3f4a;
   }
@@ -81,7 +85,7 @@
 }
 
 .glass-card {
-  background: linear-gradient(145deg, rgba(31,35,43,0.6) 0%, rgba(15,17,21,0.8) 100%);
+  background: linear-gradient(145deg, rgba(31, 35, 43, 0.6) 0%, rgba(15, 17, 21, 0.8) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -104,18 +108,31 @@
 .seat-vip {
   background: linear-gradient(135deg, #f59e0b, #d97706);
 }
+
 .seat-premium {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
+
 .seat-standard {
   background: linear-gradient(135deg, #64748b, #475569);
 }
+
 .seat-booked {
   background: #1f2937;
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .seat-selected {
   background: linear-gradient(135deg, #10b981, #059669);
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
