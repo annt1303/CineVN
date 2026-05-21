@@ -34,13 +34,13 @@ spring:
 
 # JWT Security Configurations
 jwt:
-  secret: ${JWT_SECRET:9a7563011270220c5d635032822a101b4c9b98751e18d6a89345e6f8a7e0a2d2bb2d9f8e}
+  secret: ${JWT_SECRET}
   access-expiration: ${JWT_ACCESS_EXPIRATION:3600000} # 1 hour
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
 
 # TMDB Configuration
 tmdb:
   api:
-    token: "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZWViM2QzNDYxY2M1NzdlMzYwMGY3MTE5ZWYxY2UzOCIsIm5iZiI6MTc3OTA4NDkyMy45MzYsInN1YiI6IjZhMGFhZTdiNzA4YzZmZjVlNDQ3NzUzOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.MSOsvD3l-BQfkQeVB9baF1b2ar36VeoBTp80g0LmzME"
+    token: ${TMDB_API_TOKEN}
     base-url: "https://api.themoviedb.org/3"
     image-base-url: "https://image.tmdb.org/t/p/w500"
