@@ -33,3 +33,4 @@ build/
 .vscode/
 showtime_pricing_design.md
 movie_tmdb_import_plan.md
+.env
