@@ -45,11 +45,22 @@ jobs:
 
       - name: Build & Push Frontend
         run: |
+          # Login lại trước khi push
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          
           docker build -t $ECR_FRONTEND ./frontend
           docker tag $ECR_FRONTEND:latest \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_FRONTEND:${{ steps.tag.outputs.tag }}
-          docker push \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_FRONTEND:${{ steps.tag.outputs.tag }}
+          
+          # Retry push tối đa 3 lần
+          for i in 1 2 3; do
+            docker push \
+              ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_FRONTEND:${{ steps.tag.outputs.tag }} && break
+            echo "Push failed, retry $i..."
+            sleep 10
+          done
 
   deploy:
     name: Deploy to EC2
