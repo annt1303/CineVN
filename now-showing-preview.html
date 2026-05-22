@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview - Phim dang chieu</title>
+    <style>
+      :root{
+        --bg0:#07070a;
+        --bg1:#0b0b10;
+        --card:#0f1118;
+        --muted:#a3a7b7;
+        --text:#f4f6ff;
+        --border:rgba(255,255,255,.10);
+        --border2:rgba(255,255,255,.06);
+        --rose:#e11d48;
+        --rose2:#fb7185;
+        --gold:#f59e0b;
+        --shadow: 0 20px 60px rgba(0,0,0,.55);
+        --radius:18px;
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{
+        margin:0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+        color:var(--text);
+        background:
+          radial-gradient(1200px 600px at 15% 0%, rgba(225,29,72,.25), transparent 60%),
+          radial-gradient(900px 500px at 75% 10%, rgba(245,158,11,.18), transparent 55%),
+          radial-gradient(800px 500px at 60% 70%, rgba(59,130,246,.10), transparent 55%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+      }
+      a{color:inherit;text-decoration:none}
+      .wrap{max-width:1140px;margin:0 auto;padding:28px 18px 64px}
+      .topbar{
+        position:sticky;top:0;z-index:10;
+        backdrop-filter: blur(10px);
+        background: rgba(7,7,10,.55);
+        border-bottom:1px solid var(--border2);
+      }
+      .topbar-inner{max-width:1140px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+      .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+      .brand-badge{
+        width:34px;height:34px;border-radius:12px;
+        background: linear-gradient(135deg, rgba(225,29,72,.95), rgba(251,113,133,.85));
+        box-shadow: 0 10px 22px rgba(225,29,72,.20);
+      }
+      .nav{display:flex;gap:16px;flex-wrap:wrap}
+      .nav a{color:var(--muted);font-size:13px;font-weight:650;padding:8px 10px;border-radius:999px}
+      .nav a.active{color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--border2)}
+      .hero{padding:30px 0 10px}
+      .hero h1{margin:0 0 10px;font-size:34px;letter-spacing:-.5px}
+      .hero p{margin:0;color:var(--muted);max-width:70ch;line-height:1.5}
+      .pillrow{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+      .pill{
+        display:inline-flex;align-items:center;gap:8px;
+        padding:8px 12px;border-radius:999px;
+        border:1px solid var(--border2);
+        background: rgba(255,255,255,.04);
+        color:var(--muted);
+        font-size:12px;font-weight:650;
+      }
+      .pill strong{color:var(--text)}
+
+      .tools{
+        margin-top:20px;
+        display:grid;
+        grid-template-columns: 1.2fr .8fr .8fr auto;
+        gap:10px;
+        padding:14px;
+        border-radius: var(--radius);
+        background: rgba(255,255,255,.04);
+        border: 1px solid var(--border2);
+      }
+      .field{display:flex;flex-direction:column;gap:6px}
+      .label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+      input, select{
+        width:100%;
+        padding:11px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border2);
+        background: rgba(0,0,0,.35);
+        color:var(--text);
+        outline:none;
+      }
+      input::placeholder{color:rgba(163,167,183,.65)}
+      .btn{
+        align-self:end;
+        padding:11px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(225,29,72,.35);
+        background: linear-gradient(135deg, rgba(225,29,72,.95), rgba(251,113,133,.75));
+        color:#fff;
+        font-weight:800;
+        cursor:pointer;
+        box-shadow: 0 14px 30px rgba(225,29,72,.18);
+      }
+      .btn:active{transform: translateY(1px)}
+
+      .grid{
+        margin-top:18px;
+        display:grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap:14px;
+      }
+      .card{
+        position:relative;
+        border-radius: 20px;
+        overflow:hidden;
+        background: var(--card);
+        border: 1px solid var(--border2);
+        box-shadow: 0 14px 40px rgba(0,0,0,.35);
+        min-height: 380px;
+      }
+      .poster{
+        height: 250px;
+        background:
+          radial-gradient(700px 240px at 20% 10%, rgba(251,113,133,.35), transparent 55%),
+          radial-gradient(600px 200px at 80% 20%, rgba(245,158,11,.25), transparent 55%),
+          linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      }
+      .poster .tag{
+        position:absolute;top:12px;left:12px;
+        font-size:11px;font-weight:900;
+        padding:8px 10px;border-radius:999px;
+        background: rgba(0,0,0,.45);
+        border: 1px solid var(--border2);
+      }
+      .poster .tag span{color:var(--rose2)}
+      .body{padding:12px 12px 14px}
+      .title{
+        margin:0;
+        font-weight:900;
+        font-size:15px;
+        letter-spacing:-.2px;
+        line-height:1.2;
+        display:-webkit-box;
+        -webkit-line-clamp:2;
+        -webkit-box-orient: vertical;
+        overflow:hidden;
+        min-height: 36px;
+      }
+      .meta{
+        margin-top:8px;
+        display:flex;gap:8px;flex-wrap:wrap;
+        color:var(--muted);font-size:12px;
+      }
+      .badge{
+        display:inline-flex;align-items:center;gap:6px;
+        padding:6px 10px;border-radius:999px;
+        border: 1px solid var(--border2);
+        background: rgba(255,255,255,.03);
+      }
+      .star{color:var(--gold);font-weight:900}
+      .cta{
+        margin-top:10px;
+        display:flex;gap:10px;
+      }
+      .linkbtn{
+        flex:1;
+        padding:10px 12px;border-radius:14px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid var(--border2);
+        color:var(--text);
+        font-weight:800;
+        text-align:center;
+      }
+      .linkbtn.primary{
+        background: rgba(225,29,72,.15);
+        border: 1px solid rgba(225,29,72,.35);
+      }
+
+      .footerbar{
+        margin-top:22px;
+        display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+        color:var(--muted);font-size:12px;
+      }
+      .loadmore{
+        padding:10px 12px;border-radius:14px;
+        background: rgba(255,255,255,.04);
+        border: 1px solid var(--border2);
+        cursor:pointer;
+        color:var(--text);
+        font-weight:800;
+      }
+
+      /* Modal */
+      .modal{
+        position:fixed;inset:0;z-index:50;
+        display:none;
+        align-items:center;justify-content:center;
+        padding:18px;
+        background: rgba(0,0,0,.78);
+        backdrop-filter: blur(6px);
+      }
+      .modal.open{display:flex}
+      .dialog{
+        width:min(1100px, 96vw);
+        border-radius: 22px;
+        background: #000;
+        border: 1px solid var(--border);
+        overflow:hidden;
+        box-shadow: var(--shadow);
+        position:relative;
+      }
+      .dialog-top{
+        display:flex;align-items:center;justify-content:space-between;
+        padding:12px 14px;
+        border-bottom: 1px solid var(--border2);
+        background: rgba(255,255,255,.02);
+      }
+      .dialog-title{font-weight:900;font-size:13px;color:rgba(244,246,255,.92)}
+      .xbtn{
+        width:40px;height:40px;border-radius:999px;
+        border:1px solid var(--border2);
+        background: rgba(255,255,255,.04);
+        color:var(--text);
+        cursor:pointer;
+        font-weight:900;
+        font-size:18px;
+        line-height:0;
+      }
+      .video{
+        width:100%;
+        aspect-ratio: 16/9;
+        background:
+          radial-gradient(900px 300px at 30% 15%, rgba(225,29,72,.22), transparent 55%),
+          radial-gradient(700px 260px at 75% 20%, rgba(245,158,11,.18), transparent 60%),
+          linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+        display:flex;align-items:center;justify-content:center;
+        color:rgba(244,246,255,.88);
+        font-weight:900;
+        letter-spacing:.2px;
+      }
+
+      @media (max-width: 980px){
+        .grid{grid-template-columns: repeat(3, minmax(0, 1fr))}
+      }
+      @media (max-width: 720px){
+        .nav{display:none}
+        .hero h1{font-size:28px}
+        .tools{grid-template-columns: 1fr 1fr; }
+        .btn{grid-column: 1 / -1; width:100%}
+        .grid{grid-template-columns: repeat(2, minmax(0, 1fr))}
+        .card{min-height: 360px}
+      }
+      @media (max-width: 420px){
+        .grid{grid-template-columns: 1fr}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true"></div>
+          <div>Cine<span style="color:var(--rose)">VN</span></div>
+        </div>
+        <div class="nav" aria-label="Nav preview">
+          <a href="#" aria-disabled="true">Trang chu</a>
+          <a href="#" class="active" aria-disabled="true">Phim dang chieu</a>
+          <a href="#" aria-disabled="true">Sap chieu</a>
+          <a href="#" aria-disabled="true">Rap phim</a>
+        </div>
+      </div>
+    </div>
+
+    <main class="wrap">
+      <section class="hero">
+        <h1>Phim dang chieu</h1>
+        <p>Preview layout cho trang /now-showing: tim kiem, loc the loai, sap xep, grid phim, va trailer modal. (Du lieu demo)</p>
+        <div class="pillrow">
+          <div class="pill"><strong>12</strong> phim</div>
+          <div class="pill">Status: <span style="color:var(--rose2);font-weight:900">NOW_SHOWING</span></div>
+          <div class="pill">CTA: <strong>Dat ve</strong> + <strong>Xem trailer</strong></div>
+        </div>
+      </section>
+
+      <section class="tools" aria-label="Toolbar preview">
+        <div class="field">
+          <div class="label">Tim kiem</div>
+          <input id="q" placeholder="Nhap ten phim..." />
+        </div>
+        <div class="field">
+          <div class="label">The loai</div>
+          <select id="genre">
+            <option value="">Tat ca</option>
+            <option>Hanh dong</option>
+            <option>Hai</option>
+            <option>Tam ly</option>
+            <option>Kinh di</option>
+            <option>Hoat hinh</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Sap xep</div>
+          <select id="sort">
+            <option value="new">Moi nhat</option>
+            <option value="rating">Danh gia cao</option>
+            <option value="duration">Thoi luong</option>
+          </select>
+        </div>
+        <button class="btn" id="apply">Ap dung</button>
+      </section>
+
+      <section class="grid" id="grid" aria-label="Movie grid preview"></section>
+
+      <div class="footerbar">
+        <div id="count">Hien thi: 0 phim</div>
+        <button class="loadmore" id="more">Load more</button>
+      </div>
+    </main>
+
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Trailer modal">
+      <div class="dialog">
+        <div class="dialog-top">
+          <div class="dialog-title" id="modalTitle">Trailer</div>
+          <button class="xbtn" id="close" aria-label="Close">X</button>
+        </div>
+        <div class="video">
+          Trailer embed (YouTube iframe) se o day
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const MOVIES = [
+        { id: 1, title: "Dune: Part Two", genre: "Hanh dong", rating: 8.6, duration: 166, hasTrailer: true },
+        { id: 2, title: "Inside Out 2", genre: "Hoat hinh", rating: 8.1, duration: 104, hasTrailer: true },
+        { id: 3, title: "A Quiet Place: Day One", genre: "Kinh di", rating: 7.7, duration: 99, hasTrailer: true },
+        { id: 4, title: "Kung Fu Panda 4", genre: "Hoat hinh", rating: 7.0, duration: 94, hasTrailer: false },
+        { id: 5, title: "Furiosa: A Mad Max Saga", genre: "Hanh dong", rating: 7.9, duration: 148, hasTrailer: true },
+        { id: 6, title: "Civil War", genre: "Tam ly", rating: 7.2, duration: 109, hasTrailer: true },
+        { id: 7, title: "The Fall Guy", genre: "Hai", rating: 7.1, duration: 126, hasTrailer: true },
+        { id: 8, title: "Godzilla x Kong", genre: "Hanh dong", rating: 6.9, duration: 115, hasTrailer: true },
+        { id: 9, title: "Longlegs", genre: "Kinh di", rating: 7.4, duration: 101, hasTrailer: true },
+        { id: 10, title: "IF", genre: "Hai", rating: 6.8, duration: 104, hasTrailer: false },
+        { id: 11, title: "Challengers", genre: "Tam ly", rating: 7.6, duration: 131, hasTrailer: true },
+        { id: 12, title: "Bad Boys: Ride or Die", genre: "Hanh dong", rating: 6.7, duration: 115, hasTrailer: true }
+      ];
+
+      const state = { page: 1, perPage: 8, q: "", genre: "", sort: "new" };
+
+      const $ = (id) => document.getElementById(id);
+      const grid = $("grid");
+      const count = $("count");
+      const modal = $("modal");
+      const modalTitle = $("modalTitle");
+
+      function scoreSort(a, b){
+        if (state.sort === "rating") return b.rating - a.rating;
+        if (state.sort === "duration") return b.duration - a.duration;
+        return b.id - a.id; // "newest" by id for demo
+      }
+
+      function filterMovies(){
+        const q = state.q.trim().toLowerCase();
+        return MOVIES
+          .filter(m => !q || m.title.toLowerCase().includes(q))
+          .filter(m => !state.genre || m.genre === state.genre)
+          .sort(scoreSort);
+      }
+
+      function render(){
+        const all = filterMovies();
+        const visible = all.slice(0, state.page * state.perPage);
+
+        grid.innerHTML = visible.map(m => `
+          <article class="card" data-id="${m.id}">
+            <div class="poster">
+              <div class="tag"><span>Dang chieu</span></div>
+            </div>
+            <div class="body">
+              <h3 class="title" title="${m.title}">${m.title}</h3>
+              <div class="meta">
+                <div class="badge"><span class="star">★</span> ${m.rating.toFixed(1)}</div>
+                <div class="badge">${m.duration} phut</div>
+                <div class="badge">${m.genre}</div>
+              </div>
+              <div class="cta">
+                <a class="linkbtn primary" href="#" aria-disabled="true">Dat ve</a>
+                <button class="linkbtn" type="button" data-trailer="${m.hasTrailer ? "1":"0"}">Trailer</button>
+              </div>
+            </div>
+          </article>
+        `).join("");
+
+        count.textContent = `Hien thi: ${visible.length} / ${all.length} phim`;
+        $("more").disabled = visible.length >= all.length;
+        $("more").style.opacity = visible.length >= all.length ? ".5" : "1";
+      }
+
+      function openModal(title){
+        modalTitle.textContent = `Trailer - ${title}`;
+        modal.classList.add("open");
+      }
+      function closeModal(){
+        modal.classList.remove("open");
+      }
+
+      $("apply").addEventListener("click", () => {
+        state.q = $("q").value;
+        state.genre = $("genre").value;
+        state.sort = $("sort").value;
+        state.page = 1;
+        render();
+      });
+
+      $("more").addEventListener("click", () => {
+        state.page += 1;
+        render();
+      });
+
+      grid.addEventListener("click", (e) => {
+        const trailerBtn = e.target.closest("button[data-trailer]");
+        if (!trailerBtn) return;
+        const card = e.target.closest(".card");
+        const id = Number(card.getAttribute("data-id"));
+        const m = MOVIES.find(x => x.id === id);
+        if (!m) return;
+        if (trailerBtn.getAttribute("data-trailer") !== "1") {
+          trailerBtn.textContent = "Khong co trailer";
+          setTimeout(() => { trailerBtn.textContent = "Trailer"; }, 900);
+          return;
+        }
+        openModal(m.title);
+      });
+
+      $("close").addEventListener("click", closeModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

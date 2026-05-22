@@ -1,26 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Play, Star, Clock, X } from "lucide-react";
+import { Play, Star, Clock } from "lucide-react";
+import TrailerModal from "../common/TrailerModal";
 
 export default function MovieCard({ movie, index }) {
   const [showTrailer, setShowTrailer] = useState(false);
   const [showNoTrailer, setShowNoTrailer] = useState(false);
-
-  const getYoutubeEmbedUrl = (url) => {
-    if (!url) return "";
-    let videoId = "";
-    try {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      if (match && match[2].length === 11) {
-        videoId = match[2];
-      }
-    } catch (error) {
-      console.error("Failed to parse youtube url", error);
-    }
-    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
-  };
 
   const handlePlayClick = (e) => {
     e.preventDefault();
@@ -104,43 +90,12 @@ export default function MovieCard({ movie, index }) {
           )}
         </AnimatePresence>
 
-        {/* Trailer Modal */}
-        <AnimatePresence>
-          {showTrailer && (
-              <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowTrailer(false)}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 md:p-6 backdrop-blur-sm pointer-events-auto"
-              >
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="relative w-full max-w-6xl aspect-video bg-zinc-950 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800"
-                >
-                  <button
-                      onClick={() => setShowTrailer(false)}
-                      className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/60 hover:bg-primary text-white flex items-center justify-center transition-colors cursor-pointer"
-                      aria-label="Close trailer"
-                  >
-                    <X size={20} />
-                  </button>
-
-                  <iframe
-                      src={getYoutubeEmbedUrl(movie.trailerUrl)}
-                      title={`${movie.title} Trailer`}
-                      className="w-full h-full border-none"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                  ></iframe>
-                </motion.div>
-              </motion.div>
-          )}
-        </AnimatePresence>
+        <TrailerModal
+          open={showTrailer}
+          onClose={() => setShowTrailer(false)}
+          trailerUrl={movie.trailerUrl}
+          title={movie.title}
+        />
       </motion.div>
   );
 }

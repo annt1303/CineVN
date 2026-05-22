@@ -1,5 +1,11 @@
 export const mapDbMovieToFrontend = (dbMovie) => {
   if (!dbMovie) return null;
+  const normalizedCast = Array.isArray(dbMovie.cast)
+    ? dbMovie.cast
+    : typeof dbMovie.cast === "string"
+      ? dbMovie.cast.split(",").map((name) => name.trim()).filter(Boolean)
+      : [];
+
   return {
     id: dbMovie.id,
     title: dbMovie.title,
@@ -16,7 +22,7 @@ export const mapDbMovieToFrontend = (dbMovie) => {
     releaseDate: dbMovie.releaseDate,
     description: dbMovie.overview || "",
     director: dbMovie.director || "",
-    cast: dbMovie.cast || [],
+    cast: normalizedCast,
     trailerUrl: dbMovie.trailerUrl || ""
   };
 };

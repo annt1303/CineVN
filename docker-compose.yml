@@ -42,51 +42,6 @@ services:
     networks:
       - vncinema-network
 
-  # =========================================================================
-  # 3. Spring Boot Backend Service (Commented out for future deployment)
-  # =========================================================================
-  # spring-backend:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: vncinema-backend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     - SPRING_PROFILES_ACTIVE=prod
-  #     - DB_HOST=postgres-db
-  #     - DB_PORT=5432
-  #     - DB_NAME=${DB_NAME:-vncinema}
-  #     - DB_USER=${DB_USER:-vncinema_user}
-  #     - DB_PASSWORD=${DB_PASSWORD:-vncinema_password}
-  #     - REDIS_HOST=redis-cache
-  #     - REDIS_PORT=6379
-  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-vncinema_redis_password}
-  #   depends_on:
-  #     postgres-db:
-  #       condition: service_healthy
-  #     redis-cache:
-  #       condition: service_healthy
-  #   networks:
-  #     - vncinema-network
-
-  # =========================================================================
-  # 4. React Frontend Service (Commented out for future deployment)
-  # =========================================================================
-  # react-frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: vncinema-frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - spring-backend
-  #   networks:
-  #     - vncinema-network
-
 networks:
   vncinema-network:
     driver: bridge
