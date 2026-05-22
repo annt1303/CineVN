@@ -12,6 +12,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import CinemaManagement from "./pages/admin/CinemaManagement";
 import MovieManagement from "./pages/admin/MovieManagement";
 import ShowtimeManagement from "./pages/admin/ShowtimeManagement";
+import NowShowing from "./pages/NowShowing";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/now-showing" element={<NowShowing />} />
               
               {/* Admin Routes */}
               <Route
