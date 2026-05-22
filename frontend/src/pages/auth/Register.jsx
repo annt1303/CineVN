@@ -52,7 +52,7 @@ export default function Register() {
       await sendOtp(email);
       setOtpSent(true);
       setCountdown(60);
-      setSuccessMsg("Mã OTP đã được gửi! Vui lòng kiểm tra email (hoặc console backend).");
+      setSuccessMsg("Mã OTP đã được gửi! Vui lòng kiểm tra email.");
     } catch (err) {
       setError(err.message || "Gửi mã OTP thất bại. Vui lòng thử lại.");
     } finally {

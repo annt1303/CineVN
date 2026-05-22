@@ -3,11 +3,21 @@ package com.cinema.vncinema.service.impl;
 import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.service.OtpService;
+import jakarta.annotation.PostConstruct;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -17,12 +27,35 @@ import java.util.concurrent.TimeUnit;
 public class OtpServiceImpl implements OtpService {
 
     private final StringRedisTemplate redisTemplate;
+    private final JavaMailSender mailSender;
     private final SecureRandom secureRandom = new SecureRandom();
+
+    @Value("${mail.from}")
+    private String fromEmail;
+
+    @Value("classpath:templates/otp-email.html")
+    private Resource emailTemplateResource;
+
+    private String emailTemplate;
 
     private static final String OTP_CODE_KEY_PREFIX = "otp:code:";
     private static final String OTP_VERIFIED_KEY_PREFIX = "otp:verified:";
     private static final long OTP_CODE_TTL_MINUTES = 5;
     private static final long OTP_VERIFIED_TTL_MINUTES = 10;
+
+    @PostConstruct
+    public void init() {
+        try {
+            this.emailTemplate = StreamUtils.copyToString(
+                    emailTemplateResource.getInputStream(),
+                    StandardCharsets.UTF_8
+            );
+            log.info("Successfully loaded OTP email template from resources.");
+        } catch (IOException e) {
+            log.error("Failed to load OTP email template from resources, using fallback plain text.", e);
+            this.emailTemplate = "<p>Mã OTP của bạn là: %s</p>";
+        }
+    }
 
     @Override
     public void sendOtp(String email) {
@@ -45,6 +78,24 @@ public class OtpServiceImpl implements OtpService {
         System.out.println("   OTP Code: " + otpCode);
         System.out.println("   (Valid for 5 minutes)                          ");
         System.out.println("==================================================\n\n");
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(email);
+            helper.setSubject("[VNCinema] Mã OTP Xác Thực Tài Khoản");
+            
+            String htmlContent = emailTemplate.replace("{{OTP_CODE}}", otpCode);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            log.info("Successfully sent OTP email to {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send OTP email to {}", email, e);
+            throw new AppException(ErrorCode.EMAIL_SEND_FAILED);
+        }
     }
 
     @Override
@@ -56,7 +107,6 @@ public class OtpServiceImpl implements OtpService {
             throw new AppException(ErrorCode.INVALID_OTP);
         }
 
-        // OTP is valid, remove the code and mark the email as verified
         redisTemplate.delete(redisKey);
 
         String verifiedKey = OTP_VERIFIED_KEY_PREFIX + email;

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CineVN - Xác thực OTP</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #e50914 0%, #9b000e 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .welcome-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .description {
+            color: #aaaaaa;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .otp-container {
+            background-color: #2a2a2a;
+            border: 2px dashed #e50914;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            display: inline-block;
+            min-width: 200px;
+        }
+        .otp-code {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffc107;
+            letter-spacing: 8px;
+            margin: 0;
+        }
+        .validity {
+            color: #e50914;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .footer {
+            background-color: #141414;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-top: 1px solid #222;
+        }
+        .footer a {
+            color: #e50914;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CineVN</h1>
+        </div>
+        <div class="content">
+            <p class="welcome-text">Xin chào,</p>
+            <p class="description">Cảm ơn bạn đã lựa chọn dịch vụ của CineVN. Để hoàn tất xác thực đăng ký hoặc thay đổi thông tin tài khoản, vui lòng sử dụng mã xác thực OTP dưới đây:</p>
+            <div class="otp-container">
+                <div class="otp-code">{{OTP_CODE}}</div>
+                <div class="validity">Có hiệu lực trong vòng 5 phút</div>
+            </div>
+            <p class="description" style="margin-top: 30px;">Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này hoặc liên hệ bộ phận hỗ trợ khách hàng của chúng tôi.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 CineVN. All rights reserved.</p>
+            <p>Email này được gửi tự động, vui lòng không phản hồi trực tiếp.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -35,6 +35,7 @@ public enum ErrorCode {
     TICKET_NOT_FOUND(1027, "Ticket not found", HttpStatus.NOT_FOUND),
     SEAT_NOT_FOUND(1028, "Seat not found", HttpStatus.NOT_FOUND),
     SEAT_ALREADY_BOOKED(1029, "One or more selected seats have already been booked or are pending reservation", HttpStatus.BAD_REQUEST),
+    EMAIL_SEND_FAILED(1030, "Failed to send verification email. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
     private final int code;
