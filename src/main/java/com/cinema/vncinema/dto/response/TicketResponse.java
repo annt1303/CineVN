@@ -8,5 +8,8 @@ public record TicketResponse(
     Long seatId,
     String seatName,
     BigDecimal price,
-    String status
+    String status,
+    String bookingCode,
+    String paymentMethod
 ) {}
+

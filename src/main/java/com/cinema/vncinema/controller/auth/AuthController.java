@@ -71,8 +71,17 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (email != null && !"anonymousUser".equals(email)) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = null;
+        if (authentication != null) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else if (principal instanceof String && !"anonymousUser".equals(principal)) {
+                email = (String) principal;
+            }
+        }
+        if (email != null) {
             authService.logout(email);
         }
         clearRefreshTokenCookie(response);
@@ -82,13 +91,25 @@ public class AuthController {
 
     @GetMapping("/me")
     public ApiResponse<UserResponse> getMe() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (email == null || "anonymousUser".equals(email)) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        Object principal = authentication.getPrincipal();
+        String email = null;
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else if (principal instanceof String && !"anonymousUser".equals(principal)) {
+            email = (String) principal;
+        }
+        
+        if (email == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         UserResponse response = authService.getProfile(email);
         return ApiResponse.success(AuthMessages.PROFILE_SUCCESS, response);
     }
+
 
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)

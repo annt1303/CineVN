@@ -20,13 +20,18 @@ public class PublicTicketController {
     @PostMapping("/book")
     public ApiResponse<List<TicketResponse>> bookTickets(@RequestBody BookTicketsRequest request) {
         String email = null;
-        try {
-            email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        } catch (Exception e) {
-            // Ignore if anonymous
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else if (principal instanceof String && !"anonymousUser".equals(principal)) {
+                email = (String) principal;
+            }
         }
         
         List<TicketResponse> responses = ticketService.bookTickets(request, email);
         return ApiResponse.success("ĐẶT VÉ THÀNH CÔNG!", responses);
     }
 }
+

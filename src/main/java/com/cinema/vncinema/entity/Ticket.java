@@ -31,4 +31,10 @@ public class Ticket extends BaseEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private String status = "PENDING"; // PENDING, BOOKED, CANCELLED
+
+    @Column(name = "booking_code", length = 50)
+    private String bookingCode;
+
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
 }
