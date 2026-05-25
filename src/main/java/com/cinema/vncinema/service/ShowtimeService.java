@@ -23,5 +23,5 @@ public interface ShowtimeService {
 
     List<ShowtimeResponse> getShowtimesByDate(LocalDate date);
 
-    ShowtimeSeatsResponse getShowtimeSeats(Long showtimeId);
+    ShowtimeSeatsResponse getShowtimeSeats(Long showtimeId, String bookingToken);
 }

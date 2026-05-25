@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     private final SeatTypePriceRepository seatTypePriceRepository;
     private final PricingService pricingService;
     private final ShowtimeMapper showtimeMapper;
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     @Transactional
@@ -147,7 +149,7 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     @Override
-    public ShowtimeSeatsResponse getShowtimeSeats(Long showtimeId) {
+    public ShowtimeSeatsResponse getShowtimeSeats(Long showtimeId, String bookingToken) {
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
 
@@ -167,7 +169,24 @@ public class ShowtimeServiceImpl implements ShowtimeService {
                 .map(seat -> {
                     BigDecimal surcharge = surcharges.getOrDefault(seat.getSeatType(), BigDecimal.ZERO);
                     BigDecimal price = showtime.getBasePrice().add(surcharge);
-                    String status = bookedSeatIds.contains(seat.getId()) ? "booked" : "available";
+                    
+                    String status;
+                    if (bookedSeatIds.contains(seat.getId())) {
+                        status = "booked";
+                    } else {
+                        String key = "seat:hold:" + showtimeId + ":" + seat.getId();
+                        String heldToken = redisTemplate.opsForValue().get(key);
+                        if (heldToken != null) {
+                            if (bookingToken != null && bookingToken.equals(heldToken)) {
+                                status = "available"; // Held by current user, so available to them
+                            } else {
+                                status = "held"; // Held by someone else, show as grayed out
+                            }
+                        } else {
+                            status = "available";
+                        }
+                    }
+
                     return ShowtimeSeatPriceResponse.builder()
                             .id(seat.getId())
                             .rowName(seat.getRowName())

@@ -29,8 +29,10 @@ public class PublicShowtimeController {
     }
 
     @GetMapping("/{id}/seats")
-    public ApiResponse<ShowtimeSeatsResponse> getShowtimeSeats(@PathVariable Long id) {
-        ShowtimeSeatsResponse response = showtimeService.getShowtimeSeats(id);
+    public ApiResponse<ShowtimeSeatsResponse> getShowtimeSeats(
+            @PathVariable Long id,
+            @RequestParam(required = false) String bookingToken) {
+        ShowtimeSeatsResponse response = showtimeService.getShowtimeSeats(id, bookingToken);
         return ApiResponse.success(ShowtimeMessages.GET_SHOWTIME_SUCCESS, response);
     }
 }

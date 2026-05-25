@@ -123,6 +123,13 @@
   cursor: not-allowed;
 }
 
+.seat-held {
+  background: #2d3748;
+  opacity: 0.5;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+}
+
 .seat-selected {
   background: linear-gradient(135deg, #10b981, #059669);
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);

@@ -10,6 +10,8 @@ import com.cinema.vncinema.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepository;
     private final SeatTypePriceRepository seatTypePriceRepository;
     private final UserRepository userRepository;
+    private final StringRedisTemplate redisTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -58,6 +62,13 @@ public class TicketServiceImpl implements TicketService {
                 throw new AppException(ErrorCode.SEAT_ALREADY_BOOKED);
             }
 
+            // Verify the seat is not held by another user in Redis
+            String key = "seat:hold:" + request.showtimeId() + ":" + seatId;
+            String heldToken = redisTemplate.opsForValue().get(key);
+            if (heldToken != null && !heldToken.equals(request.bookingToken())) {
+                throw new AppException(ErrorCode.SEAT_ALREADY_BOOKED);
+            }
+
             Seat seat = seatRepository.findById(seatId)
                     .orElseThrow(() -> new AppException(ErrorCode.SEAT_NOT_FOUND));
 
@@ -86,7 +97,20 @@ public class TicketServiceImpl implements TicketService {
                     saved.getPrice(),
                     saved.getStatus()
             ));
+
+            // Clean up hold key in Redis since it is now booked
+            redisTemplate.delete(key);
         }
+
+        // Broadcast to WebSocket that these seats are now booked
+        com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg = 
+                new com.cinema.vncinema.dto.response.SeatStatusUpdateResponse(
+                        request.showtimeId(),
+                        request.seatIds(),
+                        "booked",
+                        request.bookingToken()
+                );
+        messagingTemplate.convertAndSend("/topic/showtimes/" + request.showtimeId() + "/seats", broadcastMsg);
 
         return responses;
     }

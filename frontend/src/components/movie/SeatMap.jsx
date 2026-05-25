@@ -18,7 +18,7 @@ export default function SeatMap({ seats = [], selectedSeats, onSeatSelect }) {
   });
 
   const handleSeatClick = (seat) => {
-    if (seat.status === "booked") return;
+    if (seat.status === "booked" || seat.status === "held") return;
     onSeatSelect(seat);
   };
 
@@ -69,6 +69,7 @@ export default function SeatMap({ seats = [], selectedSeats, onSeatSelect }) {
                     
                     // Map seat types
                     const seatClass = seat.status === "booked" ? "seat-booked" :
+                                      seat.status === "held" ? "seat-held" :
                                       isSelected ? "seat-selected text-white" :
                                       seat.seatType === "VIP" ? "seat-premium text-white/95" :
                                       seat.seatType === "COUPLE" ? "seat-vip text-white/95" :
@@ -77,8 +78,8 @@ export default function SeatMap({ seats = [], selectedSeats, onSeatSelect }) {
                     return (
                       <motion.button
                         key={seat.id}
-                        whileHover={seat.status !== "booked" ? { scale: 1.1 } : {}}
-                        whileTap={seat.status !== "booked" ? { scale: 0.9 } : {}}
+                        whileHover={seat.status !== "booked" && seat.status !== "held" ? { scale: 1.1 } : {}}
+                        whileTap={seat.status !== "booked" && seat.status !== "held" ? { scale: 0.9 } : {}}
                         onClick={() => handleSeatClick(seat)}
                         className={cn(
                           "w-8 h-8 rounded-t-lg rounded-b-sm text-[10px] font-bold transition-colors flex items-center justify-center relative cursor-pointer",
@@ -125,6 +126,10 @@ export default function SeatMap({ seats = [], selectedSeats, onSeatSelect }) {
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded seat-selected"></div>
             <span className="text-sm text-gray-300">Đang chọn</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded seat-held"></div>
+            <span className="text-sm text-gray-300">Đang giữ</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded seat-booked"></div>

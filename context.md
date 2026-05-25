@@ -39,7 +39,7 @@ Với một hệ thống đặt vé xem phim, tính toàn vẹn của dữ liệ
 - [x] **Xác thực người dùng (Authentication)**: Đăng nhập/Đăng ký (Email/Password) sử dụng JWT. Luồng đăng ký bằng OTP, lưu Refresh Token ở HttpOnly Cookie.
 - [x] **Quản lý tài khoản cá nhân (Profile)**: Cập nhật thông tin cá nhân, đổi mật khẩu.
 - [ ] **Lịch sử mua vé (Purchase History & E-Ticket)**: Quản lý danh sách các vé đã mua, xem trạng thái vé (chưa dùng, đã dùng, đã hủy). Tích hợp hiển thị Mã QR (QR Code) để quét.
-- [ ] **Real-time Seat Booking**: Tích hợp WebSocket (qua Spring Boot STOMP) để khi một người đang giữ ghế, những người khác đang xem sơ đồ phòng chiếu sẽ thấy ghế đó chuyển sang màu xám.
+- [x] **Real-time Seat Booking**: Tích hợp WebSocket (qua Spring Boot STOMP) để khi một người đang giữ ghế, những người khác đang xem sơ đồ phòng chiếu sẽ thấy ghế đó chuyển sang màu xám.
 - [ ] **Tích hợp thanh toán**: Kết nối cổng thanh toán nội địa (VNPay, MoMo, ZaloPay) hoặc quốc tế (Stripe/PayPal).
 - [ ] **Đánh giá & Bình luận**: Cho phép user chấm điểm phim sau khi xem.
 
