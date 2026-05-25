@@ -2,18 +2,22 @@ package com.cinema.vncinema.service.impl;
 
 import com.cinema.vncinema.dto.request.BookTicketsRequest;
 import com.cinema.vncinema.dto.response.TicketResponse;
+import com.cinema.vncinema.dto.TicketEmailDto;
 import com.cinema.vncinema.entity.*;
 import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.repository.*;
+import com.cinema.vncinema.service.EmailService;
 import com.cinema.vncinema.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
@@ -31,6 +36,19 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
+    private final EmailService emailService;
+
+    private static final String BOOKING_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    /** Generates a human-friendly booking code like "TIC-A3B9F2". */
+    private String generateBookingCode() {
+        StringBuilder sb = new StringBuilder("TIC-");
+        for (int i = 0; i < 6; i++) {
+            sb.append(BOOKING_CODE_CHARS.charAt(RANDOM.nextInt(BOOKING_CODE_CHARS.length())));
+        }
+        return sb.toString();
+    }
 
     @Override
     @Transactional
@@ -55,6 +73,11 @@ public class TicketServiceImpl implements TicketService {
                 .map(t -> t.getSeat().getId())
                 .collect(Collectors.toSet());
 
+        // Shared booking code for all seats in this transaction
+        String bookingCode = generateBookingCode();
+        String paymentMethod = request.paymentMethod() != null ? request.paymentMethod() : "Online";
+
+        List<Ticket> savedTickets = new ArrayList<>();
         List<TicketResponse> responses = new ArrayList<>();
 
         for (Long seatId : request.seatIds()) {
@@ -85,17 +108,23 @@ public class TicketServiceImpl implements TicketService {
                     .seat(seat)
                     .user(user)
                     .price(price)
-                    .status("BOOKED") // Directly book it for simple demo booking flow
+                    .status("BOOKED")
+                    .bookingCode(bookingCode)
+                    .paymentMethod(paymentMethod)
                     .build();
 
             Ticket saved = ticketRepository.save(ticket);
+            savedTickets.add(saved);
+
             responses.add(new TicketResponse(
                     saved.getId(),
                     saved.getShowtime().getId(),
                     saved.getSeat().getId(),
                     saved.getSeat().getRowName() + saved.getSeat().getSeatNumber(),
                     saved.getPrice(),
-                    saved.getStatus()
+                    saved.getStatus(),
+                    saved.getBookingCode(),
+                    saved.getPaymentMethod()
             ));
 
             // Clean up hold key in Redis since it is now booked
@@ -103,7 +132,7 @@ public class TicketServiceImpl implements TicketService {
         }
 
         // Broadcast to WebSocket that these seats are now booked
-        com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg = 
+        com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg =
                 new com.cinema.vncinema.dto.response.SeatStatusUpdateResponse(
                         request.showtimeId(),
                         request.seatIds(),
@@ -111,6 +140,34 @@ public class TicketServiceImpl implements TicketService {
                         request.bookingToken()
                 );
         messagingTemplate.convertAndSend("/topic/showtimes/" + request.showtimeId() + "/seats", broadcastMsg);
+
+        // Send confirmation email asynchronously (non-blocking – does not affect booking response)
+        if (user != null && user.getEmail() != null) {
+            String seatList = savedTickets.stream()
+                    .map(t -> t.getSeat().getRowName() + t.getSeat().getSeatNumber())
+                    .collect(Collectors.joining(", "));
+
+            BigDecimal totalPrice = savedTickets.stream()
+                    .map(Ticket::getPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            TicketEmailDto emailDto = new TicketEmailDto(
+                    bookingCode,
+                    showtime.getMovie().getTitle(),
+                    showtime.getScreenRoom().getCinema().getName(),
+                    showtime.getScreenRoom().getName(),
+                    showtime.getStartTime(),
+                    seatList,
+                    savedTickets.size(),
+                    totalPrice,
+                    paymentMethod
+            );
+
+            emailService.sendTicketConfirmationEmail(user.getEmail(), emailDto);
+            log.info("Async ticket confirmation email queued for {} (booking: {})", user.getEmail(), bookingCode);
+        } else {
+            log.info("No authenticated user – skipping email for booking {}", bookingCode);
+        }
 
         return responses;
     }

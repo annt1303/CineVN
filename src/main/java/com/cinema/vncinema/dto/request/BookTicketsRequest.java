@@ -5,5 +5,6 @@ import java.util.List;
 public record BookTicketsRequest(
     Long showtimeId,
     List<Long> seatIds,
-    String bookingToken
+    String bookingToken,
+    String paymentMethod
 ) {}
