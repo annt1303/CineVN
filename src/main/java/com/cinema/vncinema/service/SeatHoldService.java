@@ -8,4 +8,7 @@ public interface SeatHoldService {
     void releaseSeats(Long showtimeId, SeatHoldRequest request);
     List<Long> getHeldSeatIds(Long showtimeId);
     String getSeatHoldToken(Long showtimeId, Long seatId);
+    boolean claimSeatHold(Long showtimeId, Long seatId, String bookingToken);
+    void revertSeatHold(Long showtimeId, Long seatId, String bookingToken);
+    void deleteSeatHold(Long showtimeId, Long seatId);
 }

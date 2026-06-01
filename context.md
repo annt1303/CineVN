@@ -46,9 +46,9 @@ Với một hệ thống đặt vé xem phim, tính toàn vẹn của dữ liệ
 ### 3.2. Dành cho Backend (Spring Boot)
 - [ ] **RESTful APIs**: Cung cấp API chuẩn cho Frontend gọi dữ liệu.
 - [x] **Spring Security**: Bảo mật API bằng JWT, phân quyền chi tiết (Role: ADMIN, USER).
-- [ ] **Concurrency / Transaction Management**: Xử lý logic đặt vé an toàn, ngăn chặn triệt để tình trạng *Double-booking* (đặt trùng vé).
+- [x] **Concurrency / Transaction Management**: Xử lý logic đặt vé an toàn, ngăn chặn triệt để tình trạng *Double-booking* (đặt trùng vé).
 - [ ] **Email/SMS Service**: Tự động gửi email xác nhận chứa mã QR vé xem phim sau khi thanh toán thành công.
-- [ ] **Job Scheduler**: Các tác vụ chạy ngầm như tự động hủy các vé giữ chỗ quá hạn 10 phút mà chưa thanh toán, tự động cập nhật trạng thái phim (Sắp chiếu -> Đang chiếu).
+- [x] **Job Scheduler**: Các tác vụ chạy ngầm như tự động hủy các vé giữ chỗ quá hạn 10 phút mà chưa thanh toán, tự động cập nhật trạng thái phim (Sắp chiếu -> Đang chiếu).
 
 ### 3.3. Dành cho Quản trị viên (Admin Dashboard - Mảng UI mới)
 *Hệ thống cần một trang quản trị riêng để quản lý:*
