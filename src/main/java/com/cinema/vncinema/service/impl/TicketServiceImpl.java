@@ -9,10 +9,13 @@ import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.repository.*;
 import com.cinema.vncinema.service.EmailService;
 import com.cinema.vncinema.service.TicketService;
+import com.cinema.vncinema.service.SeatHoldService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -37,6 +40,7 @@ public class TicketServiceImpl implements TicketService {
     private final StringRedisTemplate redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailService emailService;
+    private final SeatHoldService seatHoldService;
 
     private static final String BOOKING_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -55,6 +59,48 @@ public class TicketServiceImpl implements TicketService {
     public List<TicketResponse> bookTickets(BookTicketsRequest request, String email) {
         Showtime showtime = showtimeRepository.findById(request.showtimeId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
+
+        // 1. Try to claim holds for all seats on Redis atomically.
+        // If we fail to claim any seat, we throw SEAT_ALREADY_BOOKED and revert any successfully claimed seats.
+        List<Long> claimedSeats = new ArrayList<>();
+        try {
+            for (Long seatId : request.seatIds()) {
+                boolean claimed = seatHoldService.claimSeatHold(request.showtimeId(), seatId, request.bookingToken());
+                if (!claimed) {
+                    throw new AppException(ErrorCode.SEAT_ALREADY_BOOKED);
+                }
+                claimedSeats.add(seatId);
+            }
+        } catch (Exception e) {
+            for (Long seatId : claimedSeats) {
+                try {
+                    seatHoldService.revertSeatHold(request.showtimeId(), seatId, request.bookingToken());
+                } catch (Exception reex) {
+                    log.error("Failed to revert seat hold for showtime: {}, seat: {}", request.showtimeId(), seatId, reex);
+                }
+            }
+            throw e;
+        }
+
+        // Register transaction synchronization for final hold cleanup / revert
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    cleanupSeatHoldsAndBroadcast(request);
+                }
+
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        revertSeatHolds(request);
+                    }
+                }
+            });
+        } else {
+            // Fallback for non-transactional contexts (e.g. tests)
+            cleanupSeatHoldsAndBroadcast(request);
+        }
 
         User user = null;
         if (email != null && !email.isEmpty() && !"anonymousUser".equals(email)) {
@@ -82,13 +128,6 @@ public class TicketServiceImpl implements TicketService {
 
         for (Long seatId : request.seatIds()) {
             if (bookedSeatIds.contains(seatId)) {
-                throw new AppException(ErrorCode.SEAT_ALREADY_BOOKED);
-            }
-
-            // Verify the seat is not held by another user in Redis
-            String key = "seat:hold:" + request.showtimeId() + ":" + seatId;
-            String heldToken = redisTemplate.opsForValue().get(key);
-            if (heldToken != null && !heldToken.equals(request.bookingToken())) {
                 throw new AppException(ErrorCode.SEAT_ALREADY_BOOKED);
             }
 
@@ -126,20 +165,7 @@ public class TicketServiceImpl implements TicketService {
                     saved.getBookingCode(),
                     saved.getPaymentMethod()
             ));
-
-            // Clean up hold key in Redis since it is now booked
-            redisTemplate.delete(key);
         }
-
-        // Broadcast to WebSocket that these seats are now booked
-        com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg =
-                new com.cinema.vncinema.dto.response.SeatStatusUpdateResponse(
-                        request.showtimeId(),
-                        request.seatIds(),
-                        "booked",
-                        request.bookingToken()
-                );
-        messagingTemplate.convertAndSend("/topic/showtimes/" + request.showtimeId() + "/seats", broadcastMsg);
 
         // Send confirmation email asynchronously (non-blocking – does not affect booking response)
         if (user != null && user.getEmail() != null) {
@@ -170,5 +196,39 @@ public class TicketServiceImpl implements TicketService {
         }
 
         return responses;
+    }
+
+    private void cleanupSeatHoldsAndBroadcast(BookTicketsRequest request) {
+        for (Long seatId : request.seatIds()) {
+            try {
+                seatHoldService.deleteSeatHold(request.showtimeId(), seatId);
+            } catch (Exception ex) {
+                log.error("Failed to delete seat hold key for showtime: {}, seat: {}", request.showtimeId(), seatId, ex);
+            }
+        }
+        
+        // Broadcast to WebSocket that these seats are now booked
+        com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg =
+                new com.cinema.vncinema.dto.response.SeatStatusUpdateResponse(
+                        request.showtimeId(),
+                        request.seatIds(),
+                        "booked",
+                        request.bookingToken()
+                );
+        try {
+            messagingTemplate.convertAndSend("/topic/showtimes/" + request.showtimeId() + "/seats", broadcastMsg);
+        } catch (Exception ex) {
+            log.error("Failed to broadcast seat status update via WebSocket", ex);
+        }
+    }
+
+    private void revertSeatHolds(BookTicketsRequest request) {
+        for (Long seatId : request.seatIds()) {
+            try {
+                seatHoldService.revertSeatHold(request.showtimeId(), seatId, request.bookingToken());
+            } catch (Exception ex) {
+                log.error("Failed to revert seat hold key for showtime: {}, seat: {}", request.showtimeId(), seatId, ex);
+            }
+        }
     }
 }

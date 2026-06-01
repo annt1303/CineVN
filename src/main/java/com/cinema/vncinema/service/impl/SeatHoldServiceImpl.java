@@ -9,10 +9,12 @@ import com.cinema.vncinema.repository.TicketRepository;
 import com.cinema.vncinema.service.SeatHoldService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,17 @@ public class SeatHoldServiceImpl implements SeatHoldService {
 
     private static final String SEAT_HOLD_KEY_PREFIX = "seat:hold:";
     private static final long HOLD_TTL_MINUTES = 5;
+
+    private static final String UPDATE_HOLD_LUA_SCRIPT =
+            "local val = redis.call('get', KEYS[1])\n" +
+            "if val == ARGV[1] or val == ARGV[2] then\n" +
+            "    redis.call('set', KEYS[1], ARGV[2], 'KEEPTTL')\n" +
+            "    return 1\n" +
+            "else\n" +
+            "    return 0\n" +
+            "end";
+
+    private final RedisScript<Long> updateHoldScript = RedisScript.of(UPDATE_HOLD_LUA_SCRIPT, Long.class);
 
     @Override
     public void holdSeats(Long showtimeId, SeatHoldRequest request) {
@@ -118,6 +131,37 @@ public class SeatHoldServiceImpl implements SeatHoldService {
     @Override
     public String getSeatHoldToken(Long showtimeId, Long seatId) {
         return redisTemplate.opsForValue().get(getRedisKey(showtimeId, seatId));
+    }
+
+    @Override
+    public boolean claimSeatHold(Long showtimeId, Long seatId, String bookingToken) {
+        String key = getRedisKey(showtimeId, seatId);
+        String inProgressValue = "booking:in_progress:" + bookingToken;
+        Long result = redisTemplate.execute(
+                updateHoldScript,
+                Collections.singletonList(key),
+                bookingToken,
+                inProgressValue
+        );
+        return Long.valueOf(1L).equals(result);
+    }
+
+    @Override
+    public void revertSeatHold(Long showtimeId, Long seatId, String bookingToken) {
+        String key = getRedisKey(showtimeId, seatId);
+        String inProgressValue = "booking:in_progress:" + bookingToken;
+        redisTemplate.execute(
+                updateHoldScript,
+                Collections.singletonList(key),
+                inProgressValue,
+                bookingToken
+        );
+    }
+
+    @Override
+    public void deleteSeatHold(Long showtimeId, Long seatId) {
+        String key = getRedisKey(showtimeId, seatId);
+        redisTemplate.delete(key);
     }
 
     private String getRedisKey(Long showtimeId, Long seatId) {
