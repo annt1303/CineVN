@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
@@ -37,7 +36,6 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepository;
     private final SeatTypePriceRepository seatTypePriceRepository;
     private final UserRepository userRepository;
-    private final StringRedisTemplate redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailService emailService;
     private final SeatHoldService seatHoldService;

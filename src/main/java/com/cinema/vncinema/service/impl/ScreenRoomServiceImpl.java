@@ -5,7 +5,6 @@ import com.cinema.vncinema.dto.request.SeatLayoutRequest;
 import com.cinema.vncinema.dto.response.ScreenRoomResponse;
 import com.cinema.vncinema.dto.response.SeatResponse;
 import com.cinema.vncinema.entity.Cinema;
-import com.cinema.vncinema.entity.RoomType;
 import com.cinema.vncinema.entity.ScreenRoom;
 import com.cinema.vncinema.entity.Seat;
 import com.cinema.vncinema.exception.AppException;

@@ -77,7 +77,6 @@ public class ShowtimeServiceTest {
                 .build();
         showtime.setId(1L);
 
-        ShowtimeSaved mockSaved = new ShowtimeSaved(showtime); // helper or just standard Mock
         when(showtimeMapper.toShowtime(request)).thenReturn(showtime);
         when(showtimeRepository.save(showtime)).thenReturn(showtime);
         
@@ -134,8 +133,4 @@ public class ShowtimeServiceTest {
         verify(showtimeRepository, never()).save(any());
     }
 
-    // Dummy helper to simulate saved entity
-    private static class ShowtimeSaved {
-        ShowtimeSaved(Showtime showtime) {}
-    }
 }
