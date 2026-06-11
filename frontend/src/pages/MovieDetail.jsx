@@ -290,7 +290,11 @@ export default function MovieDetail() {
         bookingToken,
         paymentMethod,
       });
-      setBookingResult(result);
+      
+      const bookingCode = result[0].bookingCode;
+      const confirmResult = await api.post(`/api/public/tickets/confirm-payment?bookingCode=${bookingCode}`);
+      
+      setBookingResult(confirmResult);
       setUsedPaymentMethod(paymentMethod);
       setStep(4);
     } catch (err) {

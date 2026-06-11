@@ -163,7 +163,7 @@ public class TicketServiceImpl implements TicketService {
                     .seat(seat)
                     .user(user)
                     .price(price)
-                    .status("BOOKED")
+                    .status("PENDING")
                     .bookingCode(bookingCode)
                     .paymentMethod(paymentMethod)
                     .build();
@@ -183,32 +183,85 @@ public class TicketServiceImpl implements TicketService {
             ));
         }
 
-        // Send confirmation email asynchronously (non-blocking – does not affect booking response)
-        if (user != null && user.getEmail() != null) {
-            String seatList = savedTickets.stream()
-                    .map(t -> t.getSeat().getRowName() + t.getSeat().getSeatNumber())
-                    .collect(Collectors.joining(", "));
+        return responses;
+    }
 
-            BigDecimal totalPrice = savedTickets.stream()
-                    .map(Ticket::getPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+    @Override
+    @Transactional
+    public List<TicketResponse> confirmPayment(String bookingCode) {
+        List<Ticket> tickets = ticketRepository.findByBookingCode(bookingCode);
+        if (tickets.isEmpty()) {
+            throw new AppException(ErrorCode.TICKET_NOT_FOUND);
+        }
 
-            TicketEmailDto emailDto = new TicketEmailDto(
-                    bookingCode,
-                    showtime.getMovie().getTitle(),
-                    showtime.getScreenRoom().getCinema().getName(),
-                    showtime.getScreenRoom().getName(),
-                    showtime.getStartTime(),
-                    seatList,
-                    savedTickets.size(),
-                    totalPrice,
-                    paymentMethod
-            );
+        List<TicketResponse> responses = new ArrayList<>();
+        List<Ticket> savedTickets = new ArrayList<>();
 
-            emailService.sendTicketConfirmationEmail(user.getEmail(), emailDto);
-            log.info("Async ticket confirmation email queued for {} (booking: {})", user.getEmail(), bookingCode);
-        } else {
-            log.info("No authenticated user – skipping email for booking {}", bookingCode);
+        for (Ticket ticket : tickets) {
+            if ("BOOKED".equalsIgnoreCase(ticket.getStatus())) {
+                responses.add(new TicketResponse(
+                        ticket.getId(),
+                        ticket.getShowtime().getId(),
+                        ticket.getSeat().getId(),
+                        ticket.getSeat().getRowName() + ticket.getSeat().getSeatNumber(),
+                        ticket.getPrice(),
+                        ticket.getStatus(),
+                        ticket.getBookingCode(),
+                        ticket.getPaymentMethod()
+                ));
+                savedTickets.add(ticket);
+                continue;
+            }
+
+            if (!"PENDING".equalsIgnoreCase(ticket.getStatus())) {
+                throw new AppException(ErrorCode.BOOKING_ALREADY_PROCESSED);
+            }
+
+            ticket.setStatus("BOOKED");
+            Ticket saved = ticketRepository.save(ticket);
+            savedTickets.add(saved);
+
+            responses.add(new TicketResponse(
+                    saved.getId(),
+                    saved.getShowtime().getId(),
+                    saved.getSeat().getId(),
+                    saved.getSeat().getRowName() + saved.getSeat().getSeatNumber(),
+                    saved.getPrice(),
+                    saved.getStatus(),
+                    saved.getBookingCode(),
+                    saved.getPaymentMethod()
+            ));
+        }
+
+        if (!savedTickets.isEmpty()) {
+            Ticket firstTicket = savedTickets.get(0);
+            User user = firstTicket.getUser();
+            if (user != null && user.getEmail() != null) {
+                String seatList = savedTickets.stream()
+                        .map(t -> t.getSeat().getRowName() + t.getSeat().getSeatNumber())
+                        .collect(Collectors.joining(", "));
+
+                BigDecimal totalPrice = savedTickets.stream()
+                        .map(Ticket::getPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                TicketEmailDto emailDto = new TicketEmailDto(
+                        bookingCode,
+                        firstTicket.getShowtime().getMovie().getTitle(),
+                        firstTicket.getShowtime().getScreenRoom().getCinema().getName(),
+                        firstTicket.getShowtime().getScreenRoom().getName(),
+                        firstTicket.getShowtime().getStartTime(),
+                        seatList,
+                        savedTickets.size(),
+                        totalPrice,
+                        firstTicket.getPaymentMethod()
+                );
+
+                emailService.sendTicketConfirmationEmail(user.getEmail(), emailDto);
+                log.info("Async ticket confirmation email queued for {} (booking: {})", user.getEmail(), bookingCode);
+            } else {
+                log.info("No authenticated user – skipping email for booking {}", bookingCode);
+            }
         }
 
         return responses;
