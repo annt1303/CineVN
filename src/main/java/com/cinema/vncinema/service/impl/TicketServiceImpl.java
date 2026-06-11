@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -39,9 +40,12 @@ public class TicketServiceImpl implements TicketService {
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailService emailService;
     private final SeatHoldService seatHoldService;
+    private final StringRedisTemplate redisTemplate;
 
     private static final String BOOKING_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String BOOKING_LOCK_PREFIX = "booking:lock:";
+    private static final long BOOKING_LOCK_TTL_SECONDS = 30;
 
     /** Generates a human-friendly booking code like "TIC-A3B9F2". */
     private String generateBookingCode() {
@@ -55,6 +59,14 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public List<TicketResponse> bookTickets(BookTicketsRequest request, String email) {
+        // ── Idempotency guard: prevent duplicate booking from the same bookingToken ──
+        String lockKey = BOOKING_LOCK_PREFIX + request.bookingToken();
+        Boolean acquired = redisTemplate.opsForValue()
+                .setIfAbsent(lockKey, "PROCESSING", BOOKING_LOCK_TTL_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+        if (!Boolean.TRUE.equals(acquired)) {
+            throw new AppException(ErrorCode.BOOKING_ALREADY_PROCESSED);
+        }
+
         Showtime showtime = showtimeRepository.findById(request.showtimeId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
 
@@ -77,6 +89,8 @@ public class TicketServiceImpl implements TicketService {
                     log.error("Failed to revert seat hold for showtime: {}, seat: {}", request.showtimeId(), seatId, reex);
                 }
             }
+            // Release the idempotency lock so user can retry
+            redisTemplate.delete(lockKey);
             throw e;
         }
 
@@ -85,12 +99,16 @@ public class TicketServiceImpl implements TicketService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
+                    // Mark the lock as COMPLETED (keep it alive so retries are rejected)
+                    redisTemplate.opsForValue().set(lockKey, "COMPLETED", 5, java.util.concurrent.TimeUnit.MINUTES);
                     cleanupSeatHoldsAndBroadcast(request);
                 }
 
                 @Override
                 public void afterCompletion(int status) {
                     if (status == STATUS_ROLLED_BACK) {
+                        // Release the lock on rollback so user can retry
+                        redisTemplate.delete(lockKey);
                         revertSeatHolds(request);
                     }
                 }
