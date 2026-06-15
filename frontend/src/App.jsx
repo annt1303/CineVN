@@ -14,6 +14,7 @@ import MovieManagement from "./pages/admin/MovieManagement";
 import ShowtimeManagement from "./pages/admin/ShowtimeManagement";
 import NowShowing from "./pages/NowShowing";
 import ComingSoon from "./pages/ComingSoon";
+import MomoPaymentConfirm from "./pages/public/MomoPaymentConfirm";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/now-showing" element={<NowShowing />} />
               <Route path="/coming-soon" element={<ComingSoon />} />
+              <Route path="/payment-confirm/momo" element={<MomoPaymentConfirm />} />
               
               {/* Admin Routes */}
               <Route

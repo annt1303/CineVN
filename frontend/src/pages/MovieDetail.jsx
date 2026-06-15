@@ -292,15 +292,30 @@ export default function MovieDetail() {
       });
       
       const bookingCode = result[0].bookingCode;
-      const confirmResult = await api.post(`/api/public/tickets/confirm-payment?bookingCode=${bookingCode}`);
-      
-      setBookingResult(confirmResult);
-      setUsedPaymentMethod(paymentMethod);
-      setStep(4);
+
+      if (paymentMethod === "MOMO") {
+        // Create MoMo payment link
+        const payUrl = await api.post(`/api/public/payment/momo/create?bookingCode=${bookingCode}`);
+        if (payUrl) {
+          window.location.href = payUrl;
+          // Keep processing state active since we are redirecting
+          return new Promise(() => {}); // never resolves
+        } else {
+          throw new Error("Không thể tạo liên kết thanh toán MoMo.");
+        }
+      } else {
+        // Default simulated payment
+        const confirmResult = await api.post(`/api/public/tickets/confirm-payment?bookingCode=${bookingCode}`);
+        setBookingResult(confirmResult);
+        setUsedPaymentMethod(paymentMethod);
+        setStep(4);
+      }
     } catch (err) {
       alert("Đặt vé thất bại: " + err.message);
+      throw err; // rethrow so PaymentStep resets its loading state
     }
   };
+
 
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
 

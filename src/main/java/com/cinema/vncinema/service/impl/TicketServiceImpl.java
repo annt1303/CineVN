@@ -267,6 +267,57 @@ public class TicketServiceImpl implements TicketService {
         return responses;
     }
 
+    @Override
+    @Transactional
+    public void cancelBooking(String bookingCode) {
+        List<Ticket> tickets = ticketRepository.findByBookingCode(bookingCode);
+        if (tickets.isEmpty()) {
+            return;
+        }
+
+        List<Ticket> ticketsToCancel = tickets.stream()
+                .filter(t -> "PENDING".equalsIgnoreCase(t.getStatus()))
+                .collect(Collectors.toList());
+
+        if (ticketsToCancel.isEmpty()) {
+            return;
+        }
+
+        log.info("Cancelling booking: {} with {} tickets", bookingCode, ticketsToCancel.size());
+        for (Ticket ticket : ticketsToCancel) {
+            ticket.setStatus("CANCELLED");
+            ticketRepository.save(ticket);
+        }
+
+        // Group seats by showtimeId to broadcast in batches
+        Map<Long, List<Long>> seatsByShowtime = ticketsToCancel.stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getShowtime().getId(),
+                        Collectors.mapping(t -> t.getSeat().getId(), Collectors.toList())
+                ));
+
+        for (Map.Entry<Long, List<Long>> entry : seatsByShowtime.entrySet()) {
+            Long showtimeId = entry.getKey();
+            List<Long> seatIds = entry.getValue();
+
+            log.info("Broadcasting release of seats {} for showtime {} due to MoMo payment cancel/fail", seatIds, showtimeId);
+
+            com.cinema.vncinema.dto.response.SeatStatusUpdateResponse broadcastMsg =
+                    new com.cinema.vncinema.dto.response.SeatStatusUpdateResponse(
+                            showtimeId,
+                            seatIds,
+                            "available",
+                            null
+                    );
+
+            try {
+                messagingTemplate.convertAndSend("/topic/showtimes/" + showtimeId + "/seats", broadcastMsg);
+            } catch (Exception e) {
+                log.error("Failed to broadcast seat status update via WebSocket for showtime: {}", showtimeId, e);
+            }
+        }
+    }
+
     private void cleanupSeatHoldsAndBroadcast(BookTicketsRequest request) {
         for (Long seatId : request.seatIds()) {
             try {
