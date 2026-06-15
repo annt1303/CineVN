@@ -51,6 +51,12 @@ services:
       MAIL_FROM: ${MAIL_FROM}
       BREVO_SMTP_KEY: ${BREVO_SMTP_KEY}
       MAIL_USERNAME: ${MAIL_USERNAME}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
+      MOMO_API_URL: ${MOMO_API_URL}
+      MOMO_REDIRECT_URL: ${MOMO_REDIRECT_URL}
+      MOMO_IPN_URL: ${MOMO_IPN_URL}
     depends_on:
       postgres-db:
         condition: service_healthy
