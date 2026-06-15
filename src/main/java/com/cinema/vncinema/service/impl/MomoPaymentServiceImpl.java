@@ -90,6 +90,7 @@ public class MomoPaymentServiceImpl implements MomoPaymentService {
 
         log.info("Sending payment request to MoMo for booking: {}, amount: {}", bookingCode, amount);
         try {
+            @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.postForObject(url, requestBody, Map.class);
             if (response != null && Integer.valueOf(0).equals(response.get("resultCode"))) {
                 return (String) response.get("payUrl");
@@ -140,6 +141,7 @@ public class MomoPaymentServiceImpl implements MomoPaymentService {
 
             log.info("Querying MoMo transaction status for booking: {}", bookingCode);
             try {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> response = restTemplate.postForObject(url, requestBody, Map.class);
                 if (response != null) {
                     Integer resultCode = (Integer) response.get("resultCode");
