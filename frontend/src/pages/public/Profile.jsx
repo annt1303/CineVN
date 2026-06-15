@@ -6,7 +6,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { api } from "../../services/api";
 
 /* ─── tiny helpers ─── */
 const InputField = ({ icon: Icon, label, id, error, ...props }) => (
@@ -20,9 +21,8 @@ const InputField = ({ icon: Icon, label, id, error, ...props }) => (
       </span>
       <input
         id={id}
-        className={`w-full bg-zinc-900 border ${
-          error ? "border-rose-500" : "border-white/10"
-        } rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
+        className={`w-full bg-zinc-900 border ${error ? "border-rose-500" : "border-white/10"
+          } rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
         {...props}
       />
     </div>
@@ -35,11 +35,10 @@ const Toast = ({ type, message }) => (
     initial={{ opacity: 0, y: -16, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     exit={{ opacity: 0, y: -16, scale: 0.95 }}
-    className={`fixed top-24 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium ${
-      type === "success"
+    className={`fixed top-24 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium ${type === "success"
         ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-400"
         : "bg-rose-950/90 border-rose-500/30 text-rose-400"
-    } backdrop-blur-md`}
+      } backdrop-blur-md`}
   >
     {type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
     {message}
@@ -53,6 +52,7 @@ export default function Profile() {
 
   const [activeTab, setActiveTab] = useState("info"); // "info" | "security"
   const [toast, setToast] = useState(null);
+  const [ticketCount, setTicketCount] = useState(0);
 
   /* profile form state */
   const [profileForm, setProfileForm] = useState({
@@ -86,6 +86,16 @@ export default function Profile() {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get("/api/user/tickets")
+        .then((data) => {
+          if (data) setTicketCount(data.length);
+        })
+        .catch((err) => console.error("Error fetching tickets count:", err));
+    }
+  }, [isAuthenticated]);
 
   // Handle resend countdown
   useEffect(() => {
@@ -264,9 +274,8 @@ export default function Profile() {
           type={showPw[showKey] ? "text" : "password"}
           value={pwForm[field]}
           onChange={(e) => setPwForm({ ...pwForm, [field]: e.target.value })}
-          className={`w-full bg-zinc-900 border ${
-            pwErrors[field] ? "border-rose-500" : "border-white/10"
-          } rounded-xl py-3 pl-10 pr-12 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
+          className={`w-full bg-zinc-900 border ${pwErrors[field] ? "border-rose-500" : "border-white/10"
+            } rounded-xl py-3 pl-10 pr-12 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
           placeholder="••••••••"
         />
         <button
@@ -351,11 +360,10 @@ export default function Profile() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === key
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${activeTab === key
                   ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20"
                   : "bg-zinc-900 text-zinc-400 hover:text-white border border-white/5 hover:border-white/10"
-              }`}
+                }`}
             >
               <Icon size={15} />
               {label}
@@ -405,9 +413,8 @@ export default function Profile() {
                               value={profileForm.email}
                               disabled={profileLoading || otpVerified}
                               onChange={handleEmailChange}
-                              className={`w-full bg-zinc-900 border ${
-                                profileErrors.email ? "border-rose-500" : "border-white/10"
-                              } rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
+                              className={`w-full bg-zinc-900 border ${profileErrors.email ? "border-rose-500" : "border-white/10"
+                                } rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500/30 transition-all`}
                             />
                           </div>
                           {isEmailChanged && (
@@ -619,20 +626,41 @@ export default function Profile() {
           className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6"
         >
           {[
-            { label: "Vé đã mua", value: "—", icon: ChevronRight, note: "Sắp ra mắt" },
-            { label: "Đánh giá", value: "—", icon: ChevronRight, note: "Sắp ra mắt" },
-            { label: "Điểm thưởng", value: "—", icon: ChevronRight, note: "Sắp ra mắt" },
-          ].map(({ label, value, icon: Icon, note }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-white/5 p-5 flex flex-col gap-1"
-              style={{ background: "rgba(31,35,43,0.4)" }}
-            >
-              <p className="text-2xl font-bold text-white">{value}</p>
-              <p className="text-sm text-zinc-400 font-medium">{label}</p>
-              <p className="text-xs text-zinc-600 mt-1">{note}</p>
-            </div>
-          ))}
+            { label: "Vé đã mua", value: ticketCount, note: "Xem lịch sử", isLink: true, href: "/purchase-history" },
+            { label: "Đánh giá", value: "—", note: "Sắp ra mắt" },
+            { label: "Điểm thưởng", value: "—", note: "Sắp ra mắt" },
+          ].map(({ label, value, note, isLink, href }) => {
+            const cardContent = (
+              <>
+                <p className="text-2xl font-bold text-white">
+                  {value}
+                </p>
+                <p className="text-sm text-zinc-400 font-medium">{label}</p>
+                <p className={`text-xs mt-1 ${isLink ? "text-rose-500 font-semibold" : "text-zinc-600"}`}>{note}</p>
+              </>
+            );
+            if (isLink) {
+              return (
+                <Link
+                  key={label}
+                  to={href}
+                  className="rounded-2xl border border-white/5 p-5 flex flex-col gap-1 hover:border-rose-500/30 transition-all cursor-pointer"
+                  style={{ background: "rgba(31,35,43,0.4)" }}
+                >
+                  {cardContent}
+                </Link>
+              );
+            }
+            return (
+              <div
+                key={label}
+                className="rounded-2xl border border-white/5 p-5 flex flex-col gap-1"
+                style={{ background: "rgba(31,35,43,0.4)" }}
+              >
+                {cardContent}
+              </div>
+            );
+          })}
         </motion.div>
       </div>
     </div>

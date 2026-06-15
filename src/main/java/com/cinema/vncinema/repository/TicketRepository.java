@@ -12,4 +12,5 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByShowtimeId(Long showtimeId);
     List<Ticket> findByBookingCode(String bookingCode);
     List<Ticket> findByStatusAndCreatedAtBefore(String status, LocalDateTime dateTime);
+    List<Ticket> findByUserIdOrderByCreatedAtDesc(Long userId);
 }
