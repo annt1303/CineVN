@@ -37,7 +37,7 @@
 
 ## 🎯 Giới Thiệu
 
-**VNCinema** là hệ thống đặt vé xem phim trực tuyến full-stack, được xây dựng với kiến trúc hiện đại, tập trung vào:
+**CineVN** là hệ thống đặt vé xem phim trực tuyến full-stack, được xây dựng với kiến trúc hiện đại, tập trung vào:
 
 - 🪑 **Chọn ghế real-time** qua WebSocket — ghế được cập nhật tức thì trên tất cả trình duyệt
 - 🔒 **Chống đặt trùng vé (Double-booking)** bằng cơ chế khóa ghế tạm thời với Redis TTL + Pessimistic Locking
@@ -158,8 +158,8 @@
 ## 📁 Cấu Trúc Dự Án
 
 ```
-vncinema/
-├── 📂 src/main/java/com/cinema/vncinema/
+cinevn/
+├── 📂 src/main/java/com/cinema/cinevn/
 │   ├── 📂 config/          # Cấu hình (Security, Redis, WebSocket, CORS)
 │   ├── 📂 controller/
 │   │   ├── 📂 auth/        # API xác thực (Login, Register, OTP, Refresh)
@@ -216,8 +216,8 @@ vncinema/
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/annt1303/VNCinema.git
-cd VNCinema
+git clone https://github.com/annt1303/CineVN.git
+cd CineVN
 ```
 
 ### 2️⃣ Khởi Động Infrastructure (PostgreSQL + Redis)
@@ -238,14 +238,14 @@ Tạo file `.env` tại thư mục gốc dự án:
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=vncinema
-DB_USER=vncinema_user
-DB_PASSWORD=vncinema_password
+DB_NAME=cinevn
+DB_USER=cinevn_user
+DB_PASSWORD=cinevn_password
 
 # Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_PASSWORD=vncinema_redis_password
+REDIS_PASSWORD=cinevn_redis_password
 
 # JWT
 JWT_SECRET=your-secret-key-at-least-256-bits-long
@@ -258,7 +258,7 @@ TMDB_API_TOKEN=your-tmdb-api-token
 # Mail (Brevo SMTP)
 MAIL_USERNAME=your-brevo-email
 BREVO_SMTP_KEY=your-brevo-smtp-key
-MAIL_FROM=noreply@vncinema.com
+MAIL_FROM=noreply@cinevn.com
 
 # MoMo Payment (Test Environment)
 MOMO_PARTNER_CODE=MOMO
@@ -277,7 +277,7 @@ MOMO_IPN_URL=http://localhost:8080/api/public/payment/momo/ipn
 
 # Hoặc build và chạy JAR
 ./mvnw clean package -DskipTests
-java -jar target/vncinema-0.0.1-SNAPSHOT.jar
+java -jar target/cinevn-0.0.1-SNAPSHOT.jar
 ```
 
 Backend sẽ chạy tại: `http://localhost:8080`
@@ -300,12 +300,12 @@ Frontend sẽ chạy tại: `http://localhost:5173`
 |---|---|---|---|
 | `DB_HOST` | ✅ | Host của PostgreSQL | `localhost` |
 | `DB_PORT` | ❌ | Port của PostgreSQL | `5432` |
-| `DB_NAME` | ❌ | Tên database | `vncinema` |
-| `DB_USER` | ❌ | Username database | `vncinema_user` |
-| `DB_PASSWORD` | ❌ | Password database | `vncinema_password` |
+| `DB_NAME` | ❌ | Tên database | `cinevn` |
+| `DB_USER` | ❌ | Username database | `cinevn_user` |
+| `DB_PASSWORD` | ❌ | Password database | `cinevn_password` |
 | `REDIS_HOST` | ❌ | Host của Redis | `localhost` |
 | `REDIS_PORT` | ❌ | Port của Redis | `6379` |
-| `REDIS_PASSWORD` | ❌ | Password Redis | `vncinema_redis_password` |
+| `REDIS_PASSWORD` | ❌ | Password Redis | `cinevn_redis_password` |
 | `JWT_SECRET` | ✅ | Secret key cho JWT (≥256 bit) | — |
 | `TMDB_API_TOKEN` | ✅ | API token từ TMDB | — |
 | `MAIL_USERNAME` | ✅ | Email Brevo SMTP | — |
