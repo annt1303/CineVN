@@ -2,6 +2,7 @@ package com.cinema.vncinema.service.impl;
 
 import com.cinema.vncinema.dto.request.BookTicketsRequest;
 import com.cinema.vncinema.dto.response.TicketResponse;
+import com.cinema.vncinema.dto.response.PurchaseHistoryResponse;
 import com.cinema.vncinema.dto.TicketEmailDto;
 import com.cinema.vncinema.entity.*;
 import com.cinema.vncinema.exception.AppException;
@@ -316,6 +317,46 @@ public class TicketServiceImpl implements TicketService {
                 log.error("Failed to broadcast seat status update via WebSocket for showtime: {}", showtimeId, e);
             }
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PurchaseHistoryResponse> getPurchaseHistory(String email) {
+        if (email == null || email.isEmpty() || "anonymousUser".equals(email)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        List<Ticket> tickets = ticketRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+
+        return tickets.stream().map(ticket -> {
+            Showtime showtime = ticket.getShowtime();
+            Movie movie = showtime.getMovie();
+            ScreenRoom room = showtime.getScreenRoom();
+            Cinema cinema = room.getCinema();
+            Seat seat = ticket.getSeat();
+
+            return PurchaseHistoryResponse.builder()
+                    .ticketId(ticket.getId())
+                    .bookingCode(ticket.getBookingCode())
+                    .status(ticket.getStatus())
+                    .price(ticket.getPrice())
+                    .paymentMethod(ticket.getPaymentMethod())
+                    .showtimeId(showtime.getId())
+                    .movieTitle(movie.getTitle())
+                    .moviePosterPath(movie.getPosterPath())
+                    .cinemaName(cinema.getName())
+                    .screenRoomName(room.getName())
+                    .seatName(seat.getRowName() + seat.getSeatNumber())
+                    .seatType(seat.getSeatType().name())
+                    .showtimeStartTime(showtime.getStartTime())
+                    .showtimeEndTime(showtime.getEndTime())
+                    .movieFormat(showtime.getMovieFormat())
+                    .createdAt(ticket.getCreatedAt())
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     private void cleanupSeatHoldsAndBroadcast(BookTicketsRequest request) {

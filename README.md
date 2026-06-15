@@ -59,7 +59,7 @@
 | Chọn suất chiếu & đặt ghế real-time (WebSocket) | ✅ |
 | Thanh toán trực tuyến qua MoMo | ✅ |
 | Nhận vé điện tử QR Code qua email | ✅ |
-| Lịch sử mua vé & E-Ticket | 🔄 |
+| Lịch sử mua vé & E-Ticket | ✅ |
 | Đánh giá & bình luận phim | 📋 |
 
 ### 🛡️ Dành Cho Quản Trị Viên
@@ -356,6 +356,7 @@ Frontend sẽ chạy tại: `http://localhost:5173`
 | `GET` | `/api/user/profile` | Xem thông tin cá nhân |
 | `PUT` | `/api/user/profile` | Cập nhật thông tin |
 | `PUT` | `/api/user/change-password` | Đổi mật khẩu |
+| `GET` | `/api/user/tickets` | Xem lịch sử mua vé |
 
 ---
 

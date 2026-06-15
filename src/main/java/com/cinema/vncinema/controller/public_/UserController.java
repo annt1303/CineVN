@@ -7,7 +7,11 @@ import com.cinema.vncinema.dto.response.ApiResponse;
 import com.cinema.vncinema.dto.response.UpdateProfileResponse;
 import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
+import com.cinema.vncinema.constant.TicketMessages;
+import com.cinema.vncinema.dto.response.PurchaseHistoryResponse;
 import com.cinema.vncinema.service.UserService;
+import com.cinema.vncinema.service.TicketService;
+import java.util.List;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final TicketService ticketService;
 
     @PutMapping("/profile")
     public ApiResponse<UpdateProfileResponse> updateProfile(
@@ -47,6 +52,13 @@ public class UserController {
                 .sameSite("Lax")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    @GetMapping("/tickets")
+    public ApiResponse<List<PurchaseHistoryResponse>> getPurchaseHistory() {
+        String email = getAuthenticatedEmail();
+        List<PurchaseHistoryResponse> history = ticketService.getPurchaseHistory(email);
+        return ApiResponse.success(TicketMessages.GET_PURCHASE_HISTORY_SUCCESS, history);
     }
 
     @PutMapping("/change-password")

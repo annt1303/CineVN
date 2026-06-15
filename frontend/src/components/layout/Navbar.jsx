@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Film, Search, User, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Film, Search, User, Menu, X, LogOut, LayoutDashboard, Ticket } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useAuth } from "../../context/AuthContext";
 
@@ -122,6 +122,15 @@ export default function Navbar() {
                           Thông tin cá nhân
                         </Link>
 
+                        <Link
+                          to="/purchase-history"
+                          onClick={() => setShowDropdown(false)}
+                          className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium"
+                        >
+                          <Ticket size={16} className="text-rose-500" />
+                          Lịch sử đặt vé
+                        </Link>
+
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-rose-400 hover:text-rose-350 hover:bg-rose-500/5 rounded-xl transition-all font-medium cursor-pointer"
@@ -209,6 +218,15 @@ export default function Navbar() {
                   >
                     <User size={18} />
                     Thông Tin Cá Nhân
+                  </Link>
+
+                  <Link
+                    to="/purchase-history"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 bg-zinc-900 text-zinc-300 font-bold py-3 rounded-xl border border-white/5 text-sm"
+                  >
+                    <Ticket size={18} />
+                    Lịch Sử Đặt Vé
                   </Link>
 
                   <button
