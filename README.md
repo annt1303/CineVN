@@ -71,7 +71,7 @@
 | Quản lý lịch chiếu | ✅ |
 | Cấu hình giá vé tự động (loại phòng, định dạng, khung giờ) | ✅ |
 | Quản lý khuyến mãi & mã giảm giá | 📋 |
-| Báo cáo thống kê doanh thu | 📋 |
+| Báo cáo thống kê doanh thu | ✅ |
 
 > **Chú thích:** ✅ Hoàn thành · 🔄 Đang phát triển · 📋 Dự kiến
 
@@ -349,6 +349,7 @@ Frontend sẽ chạy tại: `http://localhost:5173`
 | `CRUD` | `/api/admin/showtimes` | Quản lý lịch chiếu |
 | `CRUD` | `/api/admin/pricing` | Cấu hình giá vé |
 | `GET` | `/api/admin/genres` | Danh sách thể loại |
+| `GET` | `/api/admin/reports/dashboard` | Báo cáo thống kê doanh thu |
 
 ### 👤 User APIs (`/api/user`) — *Yêu cầu xác thực*
 | Method | Endpoint | Mô tả |

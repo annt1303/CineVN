@@ -56,7 +56,7 @@ Với một hệ thống đặt vé xem phim, tính toàn vẹn của dữ liệ
 - [x] **Quản lý Phim**: Cập nhật thông tin phim, poster, trailer, thể loại. Hỗ trợ nhập tự động từ TMDB (The Movie Database) và tự thêm mới, cập nhật, xóa phim thủ công (Full CRUD).
 - [x] **Quản lý Lịch chiếu**: Lên lịch chiếu cho từng phim tại từng phòng chiếu vào các khung giờ khác nhau. Thiết kế entity và thực hiện tính giá vé tự động dựa trên `BasePriceConfig` (phụ thuộc loại phòng, định dạng 2D/3D, khung giờ, ngày trong tuần) kết hợp phụ thu theo `SeatType`, áp dụng cơ chế snapshot đóng băng giá gốc tại suất chiếu theo thiết kế chi tiết tại [showtime_pricing_design.md](showtime_pricing_design.md).
 - [ ] **Quản lý Khuyến mãi**: Tạo mã giảm giá (Coupon), quản lý chiến dịch marketing.
-- [ ] **Báo cáo Thống kê**: Biểu đồ doanh thu theo phim, theo rạp, số lượng vé bán ra (Có thể dùng Chart.js/Recharts trên React).
+- [x] **Báo cáo Thống kê**: Biểu đồ doanh thu theo phim, theo rạp, số lượng vé bán ra (Có thể dùng Chart.js/Recharts trên React).
 
 ---
 
