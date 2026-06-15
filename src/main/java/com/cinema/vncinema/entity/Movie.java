@@ -32,6 +32,9 @@ public class Movie extends BaseEntity {
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
     @Column(name = "poster_path")
     private String posterPath;
 

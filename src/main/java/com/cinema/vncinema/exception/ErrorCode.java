@@ -39,6 +39,8 @@ public enum ErrorCode {
     BOOKING_ALREADY_PROCESSED(1031, "This booking has already been processed. Please check your tickets.", HttpStatus.CONFLICT),
     MOMO_PAYMENT_CREATION_FAILED(1032, "Failed to create MoMo payment request", HttpStatus.BAD_REQUEST),
     MOMO_PAYMENT_SIGNATURE_INVALID(1033, "Invalid MoMo signature", HttpStatus.BAD_REQUEST),
+    SHOWTIME_HAS_PASSED(1034, "Showtime has already occurred", HttpStatus.BAD_REQUEST),
+    SHOWTIME_OUTSIDE_MOVIE_RUN(1035, "Showtime is outside the movie's release window", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

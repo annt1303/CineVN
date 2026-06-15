@@ -47,7 +47,7 @@ public class ShowtimeServiceTest {
 
     @Test
     public void testCreateShowtime_Success() {
-        LocalDateTime startTime = LocalDateTime.of(2026, 5, 25, 14, 0);
+        LocalDateTime startTime = LocalDateTime.of(2027, 5, 25, 14, 0);
         ShowtimeRequest request = new ShowtimeRequest(
                 1L, 1L, startTime, MovieFormat.FORMAT_2D, BigDecimal.valueOf(80000), true
         );
@@ -104,7 +104,7 @@ public class ShowtimeServiceTest {
 
     @Test
     public void testCreateShowtime_OverlapThrowsException() {
-        LocalDateTime startTime = LocalDateTime.of(2026, 5, 25, 14, 0);
+        LocalDateTime startTime = LocalDateTime.of(2027, 5, 25, 14, 0);
         ShowtimeRequest request = new ShowtimeRequest(
                 1L, 1L, startTime, MovieFormat.FORMAT_2D, BigDecimal.valueOf(80000), true
         );
