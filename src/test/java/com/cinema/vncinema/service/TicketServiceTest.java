@@ -66,6 +66,7 @@ public class TicketServiceTest {
 
         Showtime showtime = Showtime.builder()
                 .basePrice(BigDecimal.valueOf(80000))
+                .startTime(java.time.LocalDateTime.of(2027, 5, 25, 14, 0))
                 .movie(Movie.builder().title("Movie Title").build())
                 .screenRoom(ScreenRoom.builder().cinema(Cinema.builder().name("Cinema Name").build()).name("Room 1").build())
                 .build();
@@ -119,6 +120,7 @@ public class TicketServiceTest {
 
         Showtime showtime = Showtime.builder()
                 .basePrice(BigDecimal.valueOf(80000))
+                .startTime(java.time.LocalDateTime.of(2027, 5, 25, 14, 0))
                 .build();
         showtime.setId(showtimeId);
 

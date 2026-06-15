@@ -78,33 +78,49 @@ public class JobScheduler {
     }
 
     /**
-     * Periodically checks for UPCOMING movies whose releaseDate is today or in the past,
-     * and automatically updates their status to NOW_SHOWING.
+     * Periodically checks and updates the statuses of all movies based on releaseDate and endDate:
+     * - UPCOMING -> NOW_SHOWING (if releaseDate <= today and (endDate == null or endDate >= today))
+     * - NOW_SHOWING -> ENDED (if endDate != null and endDate < today)
+     * - UPCOMING/NOW_SHOWING -> ENDED/NOW_SHOWING/UPCOMING (handles admin date modifications dynamically)
      * Runs every 5 minutes.
      */
     @Scheduled(fixedRate = 300000)
     @Transactional
-    public void updateUpcomingMoviesToNowShowing() {
-        List<Movie> upcomingMovies = movieRepository.findByStatus("UPCOMING");
-        if (upcomingMovies.isEmpty()) {
+    public void updateMovieStatuses() {
+        List<Movie> allMovies = movieRepository.findAll();
+        if (allMovies.isEmpty()) {
             return;
         }
 
         LocalDate today = LocalDate.now();
-        List<Movie> moviesToUpdate = upcomingMovies.stream()
-                .filter(m -> m.getReleaseDate() != null && !m.getReleaseDate().isAfter(today))
-                .collect(Collectors.toList());
+        int updateCount = 0;
 
-        if (moviesToUpdate.isEmpty()) {
-            return;
+        for (Movie movie : allMovies) {
+            String currentStatus = movie.getStatus();
+            String targetStatus = currentStatus;
+
+            if (movie.getReleaseDate() != null && today.isBefore(movie.getReleaseDate())) {
+                targetStatus = "UPCOMING";
+            } else if (movie.getReleaseDate() != null) {
+                if (movie.getEndDate() != null && today.isAfter(movie.getEndDate())) {
+                    targetStatus = "ENDED";
+                } else {
+                    targetStatus = "NOW_SHOWING";
+                }
+            } else {
+                targetStatus = "UPCOMING";
+            }
+
+            if (!targetStatus.equals(currentStatus)) {
+                movie.setStatus(targetStatus);
+                movieRepository.save(movie);
+                log.info("Movie '{}' (ID: {}) status updated from {} to {}", movie.getTitle(), movie.getId(), currentStatus, targetStatus);
+                updateCount++;
+            }
         }
 
-        log.info("Found {} upcoming movies that should be showing. Updating status...", moviesToUpdate.size());
-
-        for (Movie movie : moviesToUpdate) {
-            movie.setStatus("NOW_SHOWING");
-            movieRepository.save(movie);
-            log.info("Movie '{}' (ID: {}) status updated to NOW_SHOWING", movie.getTitle(), movie.getId());
+        if (updateCount > 0) {
+            log.info("Movie status updates completed. Updated {} movies.", updateCount);
         }
     }
 }

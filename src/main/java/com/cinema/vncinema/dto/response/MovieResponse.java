@@ -13,6 +13,7 @@ public record MovieResponse(
     String overview,
     Integer duration,
     LocalDate releaseDate,
+    LocalDate endDate,
     String posterPath,
     String backdropPath,
     String trailerUrl,

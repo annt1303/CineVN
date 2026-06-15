@@ -48,6 +48,19 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         ScreenRoom screenRoom = screenRoomRepository.findById(request.screenRoomId())
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
+        // Validation: Showtime must not be in the past
+        if (request.startTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.SHOWTIME_HAS_PASSED);
+        }
+
+        // Validation: Showtime must be within the movie's release window
+        if (movie.getReleaseDate() != null && request.startTime().toLocalDate().isBefore(movie.getReleaseDate())) {
+            throw new AppException(ErrorCode.SHOWTIME_OUTSIDE_MOVIE_RUN);
+        }
+        if (movie.getEndDate() != null && request.startTime().toLocalDate().isAfter(movie.getEndDate())) {
+            throw new AppException(ErrorCode.SHOWTIME_OUTSIDE_MOVIE_RUN);
+        }
+
         LocalDateTime endTime = request.startTime().plusMinutes(movie.getDuration());
 
         // Check for overlaps with 20 minutes buffer before and after
@@ -97,6 +110,19 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         ScreenRoom screenRoom = screenRoomRepository.findById(request.screenRoomId())
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
+        // Validation: Showtime must not be in the past
+        if (request.startTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.SHOWTIME_HAS_PASSED);
+        }
+
+        // Validation: Showtime must be within the movie's release window
+        if (movie.getReleaseDate() != null && request.startTime().toLocalDate().isBefore(movie.getReleaseDate())) {
+            throw new AppException(ErrorCode.SHOWTIME_OUTSIDE_MOVIE_RUN);
+        }
+        if (movie.getEndDate() != null && request.startTime().toLocalDate().isAfter(movie.getEndDate())) {
+            throw new AppException(ErrorCode.SHOWTIME_OUTSIDE_MOVIE_RUN);
+        }
+
         LocalDateTime endTime = request.startTime().plusMinutes(movie.getDuration());
 
         // Check for overlaps excluding current showtime
@@ -132,9 +158,20 @@ public class ShowtimeServiceImpl implements ShowtimeService {
 
     @Override
     public List<ShowtimeResponse> getShowtimesByMovieAndDate(Long movieId, LocalDate date) {
-        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+
+        if (date.isBefore(today)) {
+            return List.of();
+        }
+
+        LocalDateTime startDateTime = date.atStartOfDay();
+        if (date.isEqual(today)) {
+            startDateTime = now;
+        }
+
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-        return showtimeRepository.findByMovieIdAndStartTimeBetweenAndIsActiveTrue(movieId, startOfDay, endOfDay).stream()
+        return showtimeRepository.findByMovieIdAndStartTimeBetweenAndIsActiveTrue(movieId, startDateTime, endOfDay).stream()
                 .map(showtimeMapper::toShowtimeResponse)
                 .collect(Collectors.toList());
     }
@@ -152,6 +189,10 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     public ShowtimeSeatsResponse getShowtimeSeats(Long showtimeId, String bookingToken) {
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
+
+        if (showtime.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.SHOWTIME_HAS_PASSED);
+        }
 
         List<Seat> seats = seatRepository.findByScreenRoomId(showtime.getScreenRoom().getId());
         List<Ticket> tickets = ticketRepository.findByShowtimeId(showtimeId);

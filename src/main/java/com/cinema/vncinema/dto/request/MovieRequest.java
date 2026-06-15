@@ -22,6 +22,7 @@ public record MovieRequest(
     Integer duration,
 
     LocalDate releaseDate,
+    LocalDate endDate,
     String posterPath,
     String backdropPath,
     String trailerUrl,

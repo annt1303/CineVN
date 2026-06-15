@@ -2,9 +2,11 @@ package com.cinema.vncinema.service.impl;
 
 import com.cinema.vncinema.dto.request.SeatHoldRequest;
 import com.cinema.vncinema.dto.response.SeatStatusUpdateResponse;
+import com.cinema.vncinema.entity.Showtime;
 import com.cinema.vncinema.entity.Ticket;
 import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
+import com.cinema.vncinema.repository.ShowtimeRepository;
 import com.cinema.vncinema.repository.TicketRepository;
 import com.cinema.vncinema.service.SeatHoldService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +30,7 @@ public class SeatHoldServiceImpl implements SeatHoldService {
 
     private final StringRedisTemplate redisTemplate;
     private final TicketRepository ticketRepository;
+    private final ShowtimeRepository showtimeRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     private static final String SEAT_HOLD_KEY_PREFIX = "seat:hold:";
@@ -46,6 +51,13 @@ public class SeatHoldServiceImpl implements SeatHoldService {
     public void holdSeats(Long showtimeId, SeatHoldRequest request) {
         String bookingToken = request.bookingToken();
         List<Long> seatIds = request.seatIds();
+
+        // 0. Check if showtime has already occurred
+        Showtime showtime = showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
+        if (showtime.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.SHOWTIME_HAS_PASSED);
+        }
 
         // 1. Check if any seat is already booked in database
         List<Ticket> existingTickets = ticketRepository.findByShowtimeId(showtimeId);

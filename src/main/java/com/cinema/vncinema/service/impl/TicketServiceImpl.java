@@ -71,6 +71,10 @@ public class TicketServiceImpl implements TicketService {
         Showtime showtime = showtimeRepository.findById(request.showtimeId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHOWTIME_NOT_FOUND));
 
+        if (showtime.getStartTime().isBefore(java.time.LocalDateTime.now())) {
+            throw new AppException(ErrorCode.SHOWTIME_HAS_PASSED);
+        }
+
         // 1. Try to claim holds for all seats on Redis atomically.
         // If we fail to claim any seat, we throw SEAT_ALREADY_BOOKED and revert any successfully claimed seats.
         List<Long> claimedSeats = new ArrayList<>();

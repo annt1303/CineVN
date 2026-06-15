@@ -16,6 +16,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
     overview: "",
     duration: "",
     releaseDate: "",
+    endDate: "",
     posterPath: "",
     backdropPath: "",
     trailerUrl: "",
@@ -54,6 +55,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
         overview: movie.overview || "",
         duration: movie.duration || "",
         releaseDate: movie.releaseDate || "",
+        endDate: movie.endDate || "",
         posterPath: movie.posterPath || "",
         backdropPath: movie.backdropPath || "",
         trailerUrl: movie.trailerUrl || "",
@@ -70,6 +72,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
         overview: "",
         duration: "",
         releaseDate: "",
+        endDate: "",
         posterPath: "",
         backdropPath: "",
         trailerUrl: "",
@@ -128,6 +131,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
       voteAverage: formData.voteAverage ? parseFloat(formData.voteAverage) : null,
       cast: castArray,
       releaseDate: formData.releaseDate || null,
+      endDate: formData.endDate || null,
       genreIds: formData.genreIds,
     };
 
@@ -211,7 +215,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
                 </div>
               </div>
 
-              {/* Thời lượng & Ngày chiếu */}
+              {/* Thời lượng & Ngày khởi chiếu */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Thời lượng *</label>
@@ -231,7 +235,7 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
                 </div>
 
                 <div>
-                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Ngày phát hành</label>
+                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Ngày khởi chiếu</label>
                   <div className="relative">
                     <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
                     <input
@@ -245,19 +249,18 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
                 </div>
               </div>
 
-              {/* Đạo diễn & Điểm đánh giá */}
+              {/* Ngày kết thúc chiếu & Điểm đánh giá */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Đạo diễn</label>
+                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Ngày kết thúc chiếu</label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
                     <input
-                      type="text"
-                      name="director"
-                      value={formData.director}
+                      type="date"
+                      name="endDate"
+                      value={formData.endDate}
                       onChange={handleChange}
-                      placeholder="Tên đạo diễn..."
-                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-rose-500 text-white rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/10 transition-all placeholder:text-zinc-600"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-rose-500 text-white rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/10 transition-all"
                     />
                   </div>
                 </div>
@@ -281,21 +284,40 @@ export default function MovieFormModal({ isOpen, onClose, onSubmitSuccess, movie
                 </div>
               </div>
 
-              {/* Trạng thái chiếu */}
-              <div>
-                <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Trạng thái phim *</label>
-                <div className="relative">
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-rose-500 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/10 transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="UPCOMING">Sắp chiếu (Upcoming)</option>
-                    <option value="NOW_SHOWING">Đang chiếu (Now Showing)</option>
-                    <option value="ENDED">Ngừng chiếu (Ended)</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              {/* Đạo diễn & Trạng thái phim */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Đạo diễn</label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                    <input
+                      type="text"
+                      name="director"
+                      value={formData.director}
+                      onChange={handleChange}
+                      placeholder="Tên đạo diễn..."
+                      className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-rose-500 text-white rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/10 transition-all placeholder:text-zinc-600"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Trạng thái phim *</label>
+                  <div className="relative">
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      disabled={true}
+                      title="Trạng thái được cập nhật tự động dựa trên Ngày chiếu và Ngày kết thúc chiếu"
+                      className="w-full bg-zinc-900/30 border border-zinc-800/80 text-zinc-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none cursor-not-allowed appearance-none"
+                    >
+                      <option value="UPCOMING">Sắp chiếu (Upcoming)</option>
+                      <option value="NOW_SHOWING">Đang chiếu (Now Showing)</option>
+                      <option value="ENDED">Ngừng chiếu (Ended)</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                  </div>
                 </div>
               </div>
             </div>

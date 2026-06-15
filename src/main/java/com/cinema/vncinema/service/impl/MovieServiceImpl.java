@@ -100,20 +100,25 @@ public class MovieServiceImpl implements MovieService {
                     .orElse(null);
         }
 
+        LocalDate releaseDate = tmdbMovie.releaseDate() != null && !tmdbMovie.releaseDate().isEmpty() ? LocalDate.parse(tmdbMovie.releaseDate()) : null;
+        LocalDate endDate = releaseDate != null ? releaseDate.plusDays(15) : null;
+        String status = determineMovieStatus(releaseDate, endDate);
+
         Movie movie = Movie.builder()
                 .tmdbId(tmdbId)
                 .title(tmdbMovie.title())
                 .originalTitle(tmdbMovie.originalTitle())
                 .overview(tmdbMovie.overview())
                 .duration(tmdbMovie.runtime() != null ? tmdbMovie.runtime() : 0)
-                .releaseDate(tmdbMovie.releaseDate() != null && !tmdbMovie.releaseDate().isEmpty() ? LocalDate.parse(tmdbMovie.releaseDate()) : null)
+                .releaseDate(releaseDate)
+                .endDate(endDate)
                 .posterPath(tmdbMovie.posterPath())
                 .backdropPath(tmdbMovie.backdropPath())
                 .trailerUrl(trailerUrl)
                 .cast(castNames)
                 .director(directorName)
                 .voteAverage(tmdbMovie.voteAverage())
-                .status("UPCOMING")
+                .status(status)
                 .genres(genres)
                 .build();
 
@@ -155,19 +160,22 @@ public class MovieServiceImpl implements MovieService {
 
         String castString = request.cast() != null ? String.join(", ", request.cast()) : null;
 
+        String status = determineMovieStatus(request.releaseDate(), request.endDate());
+
         Movie movie = Movie.builder()
                 .title(request.title())
                 .originalTitle(request.originalTitle())
                 .overview(request.overview())
                 .duration(request.duration())
                 .releaseDate(request.releaseDate())
+                .endDate(request.endDate())
                 .posterPath(request.posterPath())
                 .backdropPath(request.backdropPath())
                 .trailerUrl(request.trailerUrl())
                 .director(request.director())
                 .cast(castString)
                 .voteAverage(request.voteAverage())
-                .status(request.status())
+                .status(status)
                 .genres(genres)
                 .build();
 
@@ -188,18 +196,21 @@ public class MovieServiceImpl implements MovieService {
 
         String castString = request.cast() != null ? String.join(", ", request.cast()) : null;
 
+        String status = determineMovieStatus(request.releaseDate(), request.endDate());
+
         movie.setTitle(request.title());
         movie.setOriginalTitle(request.originalTitle());
         movie.setOverview(request.overview());
         movie.setDuration(request.duration());
         movie.setReleaseDate(request.releaseDate());
+        movie.setEndDate(request.endDate());
         movie.setPosterPath(request.posterPath());
         movie.setBackdropPath(request.backdropPath());
         movie.setTrailerUrl(request.trailerUrl());
         movie.setDirector(request.director());
         movie.setCast(castString);
         movie.setVoteAverage(request.voteAverage());
-        movie.setStatus(request.status());
+        movie.setStatus(status);
         movie.setGenres(genres);
 
         Movie updatedMovie = movieRepository.save(movie);
@@ -213,6 +224,20 @@ public class MovieServiceImpl implements MovieService {
             throw new AppException(ErrorCode.MOVIE_NOT_FOUND);
         }
         movieRepository.deleteById(id);
+    }
+
+    private String determineMovieStatus(LocalDate releaseDate, LocalDate endDate) {
+        LocalDate today = LocalDate.now();
+        if (releaseDate == null) {
+            return "UPCOMING";
+        }
+        if (today.isBefore(releaseDate)) {
+            return "UPCOMING";
+        }
+        if (endDate == null || !today.isAfter(endDate)) {
+            return "NOW_SHOWING";
+        }
+        return "ENDED";
     }
 }
 

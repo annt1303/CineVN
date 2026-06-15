@@ -1,0 +1,1 @@
+ALTER TABLE movies ADD COLUMN end_date DATE;

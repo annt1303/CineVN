@@ -20,6 +20,7 @@ export const mapDbMovieToFrontend = (dbMovie) => {
     duration: dbMovie.duration ? `${dbMovie.duration} min` : "0 min",
     rating: dbMovie.voteAverage ? dbMovie.voteAverage.toFixed(1) : "0.0",
     releaseDate: dbMovie.releaseDate,
+    endDate: dbMovie.endDate,
     description: dbMovie.overview || "",
     director: dbMovie.director || "",
     cast: normalizedCast,
