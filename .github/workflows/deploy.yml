@@ -102,6 +102,12 @@ jobs:
             MAIL_FROM=${{ secrets.MAIL_FROM }}
             BREVO_SMTP_KEY=${{ secrets.BREVO_SMTP_KEY }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MOMO_PARTNER_CODE=${{ secrets.MOMO_PARTNER_CODE }}
+            MOMO_ACCESS_KEY=${{ secrets.MOMO_ACCESS_KEY }}
+            MOMO_SECRET_KEY=${{ secrets.MOMO_SECRET_KEY }}
+            MOMO_API_URL=${{ secrets.MOMO_API_URL }}
+            MOMO_REDIRECT_URL=${{ secrets.MOMO_REDIRECT_URL }}
+            MOMO_IPN_URL=${{ secrets.MOMO_IPN_URL }}
             EOF
 
             aws ecr get-login-password --region ap-southeast-1 | \
