@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TicketService {
     List<TicketResponse> bookTickets(BookTicketsRequest request, String email);
+    List<TicketResponse> confirmPayment(String bookingCode);
+    void cancelBooking(String bookingCode);
 }

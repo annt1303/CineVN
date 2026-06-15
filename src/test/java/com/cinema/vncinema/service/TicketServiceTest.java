@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +46,16 @@ public class TicketServiceTest {
 
     @InjectMocks
     private TicketServiceImpl ticketService;
+
+    @Mock
+    private org.springframework.data.redis.core.ValueOperations<String, String> valueOperations;
+
+    @org.junit.jupiter.api.BeforeEach
+    public void setUp() {
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(valueOperations.setIfAbsent(anyString(), anyString(), anyLong(), any(java.util.concurrent.TimeUnit.class)))
+                .thenReturn(true);
+    }
 
     @Test
     public void testBookTickets_Success() {

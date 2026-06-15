@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../utils/cn";
 import momoLogo from "../../assets/MOMO.png";
@@ -49,16 +49,23 @@ export default function PaymentStep({
 }) {
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const isSubmitting = useRef(false);
 
   const handlePay = async () => {
-    if (!selectedMethod || processing) return;
+    if (!selectedMethod || processing || isSubmitting.current) return;
+    isSubmitting.current = true;
     setProcessing(true);
 
-    // Simulate payment processing animation (2s)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Simulate payment processing animation (2s)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await onConfirmPayment(selectedMethod);
-    setProcessing(false);
+      await onConfirmPayment(selectedMethod);
+    } catch (err) {
+      // Reset on error so user can retry
+      isSubmitting.current = false;
+      setProcessing(false);
+    }
   };
 
   const activeShowtime = selectedShowtime;

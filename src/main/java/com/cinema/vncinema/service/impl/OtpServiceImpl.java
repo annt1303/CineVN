@@ -4,7 +4,6 @@ import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.service.OtpService;
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -13,7 +13,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -59,3 +59,12 @@ tmdb:
     token: ${TMDB_API_TOKEN}
     base-url: "https://api.themoviedb.org/3"
     image-base-url: "https://image.tmdb.org/t/p/w500"
+
+# MoMo Payment Gateway Configuration
+momo:
+  partner-code: ${MOMO_PARTNER_CODE:MOMO}
+  access-key: ${MOMO_ACCESS_KEY:F8BBA842ECF85}
+  secret-key: ${MOMO_SECRET_KEY:K951B6PE1waDMi640xX08PD3vg6EkVlz}
+  api-url: ${MOMO_API_URL:https://test-payment.momo.vn}
+  redirect-url: ${MOMO_REDIRECT_URL:http://localhost:5173/payment-confirm/momo}
+  ipn-url: ${MOMO_IPN_URL:http://localhost:8080/api/public/payment/momo/ipn}

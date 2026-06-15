@@ -33,5 +33,11 @@ public class PublicTicketController {
         List<TicketResponse> responses = ticketService.bookTickets(request, email);
         return ApiResponse.success("ĐẶT VÉ THÀNH CÔNG!", responses);
     }
+
+    @PostMapping("/confirm-payment")
+    public ApiResponse<List<TicketResponse>> confirmPayment(@RequestParam String bookingCode) {
+        List<TicketResponse> responses = ticketService.confirmPayment(bookingCode);
+        return ApiResponse.success("THANH TOÁN THÀNH CÔNG!", responses);
+    }
 }
 

@@ -36,6 +36,9 @@ public enum ErrorCode {
     SEAT_NOT_FOUND(1028, "Seat not found", HttpStatus.NOT_FOUND),
     SEAT_ALREADY_BOOKED(1029, "One or more selected seats have already been booked or are pending reservation", HttpStatus.BAD_REQUEST),
     EMAIL_SEND_FAILED(1030, "Failed to send verification email. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR),
+    BOOKING_ALREADY_PROCESSED(1031, "This booking has already been processed. Please check your tickets.", HttpStatus.CONFLICT),
+    MOMO_PAYMENT_CREATION_FAILED(1032, "Failed to create MoMo payment request", HttpStatus.BAD_REQUEST),
+    MOMO_PAYMENT_SIGNATURE_INVALID(1033, "Invalid MoMo signature", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
