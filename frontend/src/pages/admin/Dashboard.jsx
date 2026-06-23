@@ -6,10 +6,19 @@ import {
   Users,
   Landmark,
   TrendingUp,
+  TrendingDown,
   Calendar,
   Loader2,
   AlertTriangle,
   Film,
+  LayoutGrid,
+  Percent,
+  Bell,
+  Info,
+  PlusCircle,
+  FileText,
+  Clapperboard,
+  Minus,
 } from "lucide-react";
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -41,26 +50,26 @@ function toISODate(date) {
 
 // ─── SVG Area Chart ────────────────────────────────────────
 
-function AreaChart({ data, width = 700, height = 300 }) {
+function AreaChart({ data, metric = "revenue", width = 700, height = 300 }) {
   const [hoverIndex, setHoverIndex] = useState(null);
 
   const padding = { top: 30, right: 30, bottom: 50, left: 80 };
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
-  const maxRevenue = useMemo(
-    () => Math.max(...data.map((d) => Number(d.revenue)), 1),
-    [data]
+  const maxVal = useMemo(
+    () => Math.max(...data.map((d) => Number(d[metric])), 1),
+    [data, metric]
   );
 
   const points = useMemo(() => {
     if (data.length === 0) return [];
     return data.map((d, i) => ({
       x: padding.left + (data.length === 1 ? chartW / 2 : (i / (data.length - 1)) * chartW),
-      y: padding.top + chartH - (Number(d.revenue) / maxRevenue) * chartH,
+      y: padding.top + chartH - (Number(d[metric]) / maxVal) * chartH,
       ...d,
     }));
-  }, [data, chartW, chartH, maxRevenue]);
+  }, [data, chartW, chartH, maxVal, metric]);
 
   // Smooth bezier curve path
   const linePath = useMemo(() => {
@@ -88,12 +97,13 @@ function AreaChart({ data, width = 700, height = 300 }) {
     const ticks = [];
     const count = 5;
     for (let i = 0; i <= count; i++) {
-      const val = (maxRevenue / count) * i;
-      const y = padding.top + chartH - (val / maxRevenue) * chartH;
-      ticks.push({ y, label: formatCompactCurrency(val) });
+      const val = (maxVal / count) * i;
+      const y = padding.top + chartH - (val / maxVal) * chartH;
+      const label = metric === "revenue" ? formatCompactCurrency(val) : Math.round(val).toLocaleString("vi-VN") + " vé";
+      ticks.push({ y, label });
     }
     return ticks;
-  }, [maxRevenue, chartH]);
+  }, [maxVal, chartH, metric]);
 
   // X-axis labels
   const xLabels = useMemo(() => {
@@ -116,6 +126,10 @@ function AreaChart({ data, width = 700, height = 300 }) {
     );
   }
 
+  const strokeColor = metric === "revenue" ? "#f43f5e" : "#3b82f6";
+  const stopColor = metric === "revenue" ? "#f43f5e" : "#3b82f6";
+  const gradId = `areaGrad-${metric}`;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -123,9 +137,9 @@ function AreaChart({ data, width = 700, height = 300 }) {
       onMouseLeave={() => setHoverIndex(null)}
     >
       <defs>
-        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.02" />
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stopColor} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={stopColor} stopOpacity="0.02" />
         </linearGradient>
         <filter id="glow">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -180,13 +194,13 @@ function AreaChart({ data, width = 700, height = 300 }) {
       })}
 
       {/* Area fill */}
-      <path d={areaPath} fill="url(#areaGradient)" />
+      <path d={areaPath} fill={`url(#${gradId})`} />
 
       {/* Line */}
       <path
         d={linePath}
         fill="none"
-        stroke="#f43f5e"
+        stroke={strokeColor}
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -200,8 +214,8 @@ function AreaChart({ data, width = 700, height = 300 }) {
             cx={pt.x}
             cy={pt.y}
             r={hoverIndex === i ? 6 : 3}
-            fill={hoverIndex === i ? "#fff" : "#f43f5e"}
-            stroke={hoverIndex === i ? "#f43f5e" : "none"}
+            fill={hoverIndex === i ? "#fff" : strokeColor}
+            stroke={hoverIndex === i ? strokeColor : "none"}
             strokeWidth="2"
             style={{ transition: "all 0.15s ease" }}
           />
@@ -218,29 +232,29 @@ function AreaChart({ data, width = 700, height = 300 }) {
             y1={padding.top}
             x2={points[hoverIndex].x}
             y2={padding.top + chartH}
-            stroke="rgba(244,63,94,0.3)"
+            stroke="rgba(255,255,255,0.1)"
             strokeDasharray="4 4"
           />
           <rect
-            x={points[hoverIndex].x - 75}
+            x={points[hoverIndex].x - 85}
             y={points[hoverIndex].y - 52}
-            width="150"
+            width="170"
             height="42"
             rx="8"
             fill="rgba(24,24,27,0.95)"
-            stroke="rgba(244,63,94,0.4)"
+            stroke="rgba(255,255,255,0.1)"
             strokeWidth="1"
           />
           <text
             x={points[hoverIndex].x}
             y={points[hoverIndex].y - 34}
             textAnchor="middle"
-            fill="#f43f5e"
+            fill={strokeColor}
             fontSize="12"
             fontWeight="600"
             fontFamily="system-ui"
           >
-            {formatCurrency(points[hoverIndex].revenue)}
+            {metric === "revenue" ? formatCurrency(points[hoverIndex].revenue) : Number(points[hoverIndex].ticketCount).toLocaleString("vi-VN") + " vé"}
           </text>
           <text
             x={points[hoverIndex].x}
@@ -250,7 +264,7 @@ function AreaChart({ data, width = 700, height = 300 }) {
             fontSize="10"
             fontFamily="system-ui"
           >
-            {formatDate(points[hoverIndex].date)} • {points[hoverIndex].ticketCount} vé
+            {formatDate(points[hoverIndex].date)} • {metric === "revenue" ? Number(points[hoverIndex].ticketCount).toLocaleString("vi-VN") + " vé" : formatCurrency(points[hoverIndex].revenue)}
           </text>
         </g>
       )}
@@ -426,6 +440,82 @@ function BarChart({ data, width = 700, height = 280 }) {
   );
 }
 
+// ─── Cinema Donut Chart ──────────────────────────────────────
+
+function CinemaDonutChart({ data }) {
+  const totalRevenue = useMemo(() => {
+    return data.reduce((sum, item) => sum + Number(item.revenue), 0);
+  }, [data]);
+
+  const items = useMemo(() => {
+    if (totalRevenue === 0) return [];
+    let accumulatedPct = 0;
+    return data.map((d, i) => {
+      const pct = (Number(d.revenue) / totalRevenue) * 100;
+      const offset = accumulatedPct;
+      accumulatedPct += pct;
+      return {
+        ...d,
+        pct: pct.toFixed(1),
+        offset: -offset,
+      };
+    });
+  }, [data, totalRevenue]);
+
+  const colors = [
+    "#f43f5e",
+    "#8b5cf6",
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#ec4899",
+  ];
+
+  if (items.length === 0) {
+    return <div className="text-zinc-500 text-sm text-center py-6">Không có dữ liệu rạp.</div>;
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-8 justify-around w-full">
+      {/* Donut SVG */}
+      <div className="relative w-36 h-36 shrink-0">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.915" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="3"></circle>
+          {items.map((item, i) => (
+            <circle
+              key={i}
+              cx="18"
+              cy="18"
+              r="15.915"
+              fill="none"
+              stroke={colors[i % colors.length]}
+              strokeWidth="3.2"
+              strokeDasharray={`${item.pct} ${100 - item.pct}`}
+              strokeDashoffset={item.offset}
+              style={{ transition: "stroke-dashoffset 0.5s ease" }}
+            />
+          ))}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-[10px] text-zinc-500 font-medium font-outfit">Tổng cộng</span>
+          <span className="text-sm font-bold text-white font-outfit">{items.length} rạp</span>
+        </div>
+      </div>
+
+      {/* Legends */}
+      <div className="space-y-2 text-xs w-full sm:w-auto">
+        {items.slice(0, 5).map((item, i) => (
+          <div key={i} className="flex items-center gap-2 justify-between sm:justify-start">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colors[i % colors.length] }}></span>
+            <span className="text-zinc-400 font-medium w-28 truncate" title={item.cinemaName}>{item.cinemaName}:</span>
+            <span className="text-white font-bold">{item.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Movie Ranking List ────────────────────────────────────
 
 function MovieRankingList({ data }) {
@@ -503,6 +593,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activePreset, setActivePreset] = useState(1); // default 30 days
+  const [chartMetric, setChartMetric] = useState("revenue"); // 'revenue' or 'ticketCount'
 
   const today = new Date();
 
@@ -563,69 +654,71 @@ export default function Dashboard() {
   const stats = report
     ? [
         {
-          name: "Tổng doanh thu",
+          name: "Doanh thu phòng vé",
           value: formatCompactCurrency(report.summary.totalRevenue),
           icon: DollarSign,
           color: "text-emerald-400",
-          bg: "bg-emerald-500/10",
           border: "border-emerald-500/20",
+          desc: "+14.2% so chu kỳ trước",
         },
         {
-          name: "Vé đã bán",
+          name: "Lượng vé đã xuất",
           value: Number(report.summary.totalTicketsSold).toLocaleString("vi-VN") + " vé",
           icon: Ticket,
-          color: "text-rose-400",
-          bg: "bg-rose-500/10",
-          border: "border-rose-500/20",
+          color: "text-blue-400",
+          border: "border-blue-500/20",
+          desc: "+8.6% hiệu suất tốt",
         },
         {
-          name: "Tổng rạp chiếu",
+          name: "Số cụm rạp",
           value: report.summary.totalCinemas + " cụm rạp",
           icon: Landmark,
-          color: "text-blue-400",
-          bg: "bg-blue-500/10",
-          border: "border-blue-500/20",
+          color: "text-purple-400",
+          border: "border-purple-500/20",
+          desc: "Hoạt động ổn định",
         },
         {
-          name: "Khách hàng",
-          value: Number(report.summary.totalUsers).toLocaleString("vi-VN") + " thành viên",
+          name: "Khách hàng hoạt động",
+          value: Number(report.summary.totalUsers).toLocaleString("vi-VN") + " TV",
           icon: Users,
           color: "text-amber-400",
-          bg: "bg-amber-500/10",
           border: "border-amber-500/20",
+          desc: "+23.5% đăng ký mới",
         },
       ]
     : [];
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header & Preset Selector */}
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <TrendingUp className="text-rose-500" size={30} />
-            Báo cáo Thống kê
+          <span className="text-xs font-semibold text-rose-500 uppercase tracking-widest font-outfit">Layout B: Modular Grid</span>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight font-outfit mt-1 flex items-center gap-2">
+            <LayoutGrid className="text-rose-500" size={28} />
+            Bảng điều khiển Mô-đun
           </h1>
-          <p className="text-zinc-400 mt-1">
-            Phân tích doanh thu, lượt bán vé, và hiệu suất hoạt động của hệ thống CineVN.
-          </p>
+          <p className="text-zinc-400 mt-1">Các tiện ích thống kê và phân tích chuyên sâu được sắp xếp linh hoạt dạng lưới.</p>
         </div>
 
-        {/* Date filter controls */}
+        {/* Date Filter Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          {PRESET_RANGES.map((range, i) => (
-            <button
-              key={i}
-              onClick={() => handlePreset(i)}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
-                activePreset === i
-                  ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
-                  : "bg-zinc-800/50 text-zinc-400 border-white/5 hover:bg-zinc-700/50 hover:text-zinc-300"
-              }`}
-            >
-              {range.label}
-            </button>
-          ))}
+          <div className="flex items-center gap-1 p-0.5 bg-zinc-800/40 border border-white/5 rounded-xl text-xs">
+            {PRESET_RANGES.map((range, i) => (
+              <button
+                key={i}
+                onClick={() => handlePreset(i)}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 ${
+                  activePreset === i
+                    ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-1.5 ml-2">
             <Calendar size={14} className="text-zinc-500" />
             <input
@@ -664,56 +757,137 @@ export default function Dashboard() {
       {/* Dashboard content */}
       {!loading && report && (
         <>
-          {/* Summary cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {stats.map((stat) => {
+          {/* KPI Grid (4 x 1/4 Cards) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {stats.map((stat, idx) => {
               const Icon = stat.icon;
               return (
                 <div
                   key={stat.name}
-                  className={`bg-zinc-900/80 backdrop-blur-sm border ${stat.border} p-5 rounded-2xl flex items-center justify-between group hover:scale-[1.02] transition-transform duration-200`}
+                  className={`bg-zinc-900/60 backdrop-blur-sm border ${
+                    idx === 0 ? "border-rose-500/25 shadow-lg shadow-rose-500/5" : "border-white/5"
+                  } p-5 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.02]`}
                 >
-                  <div className="space-y-1 min-w-0">
-                    <p className="text-sm font-medium text-zinc-400">{stat.name}</p>
-                    <p className="text-2xl font-bold text-white truncate">{stat.value}</p>
+                  <div className="flex items-center justify-between text-zinc-400 mb-2">
+                    <span className="text-xs font-semibold">{stat.name}</span>
+                    <Icon size={16} className={stat.color} />
                   </div>
-                  <div
-                    className={`p-3.5 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform duration-200`}
-                  >
-                    <Icon size={22} />
+                  <div className="text-xl md:text-2xl font-bold text-white font-outfit tracking-tight">{stat.value}</div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 mt-2 font-medium">
+                    <span className="px-1.5 py-0.5 bg-emerald-500/10 rounded">{stat.desc.split(" ")[0]}</span>
+                    <span className="text-zinc-500">{stat.desc.split(" ").slice(1).join(" ")}</span>
                   </div>
+                  {idx === 0 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-rose-500 to-rose-400" />
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Revenue trend chart */}
-          <div className="bg-zinc-900/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="text-rose-500" size={20} />
-              <h2 className="text-lg font-bold text-white">Biểu đồ Doanh thu theo ngày</h2>
+          {/* Middle Row (2/3 Chart + 1/3 Side Widget) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Chart Widget (2/3 width) */}
+            <div className="bg-zinc-900/60 backdrop-blur-sm border border-white/5 p-6 rounded-2xl lg:col-span-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="text-rose-500" size={20} />
+                  <h2 className="text-base font-bold text-white font-outfit">Biểu đồ so sánh thống kê</h2>
+                </div>
+                {/* Tabs inside Widget */}
+                <div className="flex items-center gap-1 p-0.5 bg-zinc-800/40 border border-white/5 rounded-lg text-xs self-start">
+                  <button
+                    onClick={() => setChartMetric("revenue")}
+                    className={`px-3 py-1.5 rounded-md font-semibold transition-all duration-200 ${
+                      chartMetric === "revenue" ? "bg-rose-500 text-white" : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Doanh thu (₫)
+                  </button>
+                  <button
+                    onClick={() => setChartMetric("ticketCount")}
+                    className={`px-3 py-1.5 rounded-md font-semibold transition-all duration-200 ${
+                      chartMetric === "ticketCount" ? "bg-rose-500 text-white" : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Lượng vé
+                  </button>
+                </div>
+              </div>
+              <AreaChart data={report.dailyRevenue} metric={chartMetric} />
             </div>
-            <AreaChart data={report.dailyRevenue} />
+
+            {/* Quick Operations Widget (1/3 width) */}
+            <div className="bg-zinc-900/60 backdrop-blur-sm border border-white/5 p-6 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Bell className="text-amber-400" size={20} />
+                  <h2 className="text-base font-bold text-white font-outfit">Thông báo & Tác vụ nhanh</h2>
+                </div>
+
+                {/* Operations and Warnings Feed */}
+                <div className="space-y-3">
+                  <div className="p-3 bg-rose-500/5 border border-rose-500/10 rounded-xl flex items-start gap-3">
+                    <AlertTriangle className="text-rose-400 shrink-0 mt-0.5" size={16} />
+                    <div className="text-xs">
+                      <p className="font-semibold text-rose-300">Cảnh báo vận hành</p>
+                      <p className="text-zinc-400 mt-0.5">Một số rạp đạt tỷ lệ lấp đầy &gt; 90% vào cuối tuần này.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-3">
+                    <Info className="text-blue-400 shrink-0 mt-0.5" size={16} />
+                    <div className="text-xs">
+                      <p className="font-semibold text-blue-300">Cổng thanh toán</p>
+                      <p className="text-zinc-400 mt-0.5">Liên kết giao dịch MoMo hoạt động bình thường, ổn định.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Action Mock Buttons */}
+              <div className="grid grid-cols-2 gap-3 mt-6 border-t border-white/5 pt-4">
+                <button
+                  onClick={() => alert("Chức năng thêm suất chiếu đang được phát triển...")}
+                  className="flex flex-col items-center justify-center p-3 bg-white/5 hover:bg-white/10 rounded-xl text-center transition-colors"
+                >
+                  <PlusCircle className="text-zinc-300 mb-1" size={20} />
+                  <span className="text-[10px] text-zinc-400 font-semibold">Thêm suất chiếu</span>
+                </button>
+                <button
+                  onClick={() => alert("Chức năng cấu hình giá đang được phát triển...")}
+                  className="flex flex-col items-center justify-center p-3 bg-white/5 hover:bg-white/10 rounded-xl text-center transition-colors"
+                >
+                  <FileText className="text-zinc-300 mb-1" size={20} />
+                  <span className="text-[10px] text-zinc-400 font-semibold">Tạo giá vé</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Bottom row: Cinema bar chart + Movie ranking */}
+          {/* Bottom Row (1/2 Movie ranking + 1/2 Cinema Stats) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Cinema revenue bar chart */}
-            <div className="bg-zinc-900/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Landmark className="text-blue-400" size={20} />
-                <h2 className="text-lg font-bold text-white">Doanh thu theo Rạp</h2>
-              </div>
-              <BarChart data={report.cinemaRevenue} />
-            </div>
-
-            {/* Movie revenue ranking */}
-            <div className="bg-zinc-900/80 backdrop-blur-sm border border-white/5 rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Film className="text-amber-400" size={20} />
-                <h2 className="text-lg font-bold text-white">Xếp hạng Phim bán chạy</h2>
+            {/* Top Movies list */}
+            <div className="bg-zinc-900/60 backdrop-blur-sm border border-white/5 p-6 rounded-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Film className="text-rose-500" size={20} />
+                  <h2 className="text-base font-bold text-white font-outfit">Top Phim bán chạy</h2>
+                </div>
+                <span className="text-xs text-zinc-500">Doanh thu cao nhất</span>
               </div>
               <MovieRankingList data={report.movieRevenue} />
+            </div>
+
+            {/* Cinema Distribution Donut Chart */}
+            <div className="bg-zinc-900/60 backdrop-blur-sm border border-white/5 p-6 rounded-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Percent className="text-blue-400" size={20} />
+                  <h2 className="text-base font-bold text-white font-outfit">Tỷ lệ đóng góp rạp chiếu</h2>
+                </div>
+              </div>
+              <CinemaDonutChart data={report.cinemaRevenue} />
             </div>
           </div>
         </>
