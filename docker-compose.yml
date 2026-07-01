@@ -42,6 +42,29 @@ services:
     networks:
       - vncinema-network
 
+  # =========================================================================
+  # 3. RabbitMQ Message Queue Service
+  # =========================================================================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: vncinema-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-cinema}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-cinema123}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vncinema-network
+
 networks:
   vncinema-network:
     driver: bridge
@@ -50,4 +73,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  rabbitmq_data:
     driver: local

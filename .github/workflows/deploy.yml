@@ -108,6 +108,8 @@ jobs:
             MOMO_API_URL=${{ secrets.MOMO_API_URL }}
             MOMO_REDIRECT_URL=${{ secrets.MOMO_REDIRECT_URL }}
             MOMO_IPN_URL=${{ secrets.MOMO_IPN_URL }}
+            RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+            RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
             EOF
 
             aws ecr get-login-password --region ap-southeast-1 | \

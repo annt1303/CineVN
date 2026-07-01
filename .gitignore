@@ -35,3 +35,4 @@ showtime_pricing_design.md
 movie_tmdb_import_plan.md
 .env
 BOOKING_CONCURRENCY_GUIDE.md
+rabbitmq_design.md
