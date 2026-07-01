@@ -65,6 +65,65 @@ services:
     networks:
       - vncinema-network
 
+  # =========================================================================
+  # 4. Backend Spring Boot Service
+  # =========================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vncinema-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-vncinema}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-vncinema_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-vncinema_password}
+      SPRING_DATA_REDIS_HOST: redis-cache
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-vncinema_redis_password}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-cinema}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-cinema123}
+      JWT_SECRET: ${JWT_SECRET}
+      TMDB_API_TOKEN: ${TMDB_API_TOKEN}
+      MAIL_FROM: ${MAIL_FROM}
+      BREVO_SMTP_KEY: ${BREVO_SMTP_KEY}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
+      MOMO_API_URL: ${MOMO_API_URL}
+      MOMO_REDIRECT_URL: ${MOMO_REDIRECT_URL}
+      MOMO_IPN_URL: ${MOMO_IPN_URL}
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vncinema-network
+
+  # =========================================================================
+  # 5. Frontend React + Nginx Service
+  # =========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vncinema-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - vncinema-network
+
 networks:
   vncinema-network:
     driver: bridge
