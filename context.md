@@ -67,7 +67,6 @@ Hệ thống đã cấu hình file [docker-compose.yml](file:///d:/Projects/vnci
 - [ ] `spring-backend`: Container chạy Spring Boot (Đã định nghĩa cấu trúc mẫu trong `docker-compose.yml`).
 - [ ] `react-frontend`: Container chạy Nginx serve ứng dụng React.js (Đã định nghĩa cấu trúc mẫu trong `docker-compose.yml`).
 
-
 ---
 
 ## 5. Cấu trúc thư mục (Package Structure)
