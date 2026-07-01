@@ -27,6 +27,22 @@ spring:
       password: ${REDIS_PASSWORD:vncinema_redis_password}
       notify-keyspace-events: Ex
 
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:cinema}
+    password: ${RABBITMQ_PASSWORD:cinema123}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3000
+          max-attempts: 3
+          multiplier: 2.0
+          max-interval: 30000
+        default-requeue-rejected: false
+
   # Flyway Database Migration
   flyway:
     enabled: true

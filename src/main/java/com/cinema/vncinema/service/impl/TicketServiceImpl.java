@@ -8,7 +8,8 @@ import com.cinema.vncinema.entity.*;
 import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.repository.*;
-import com.cinema.vncinema.service.EmailService;
+import com.cinema.vncinema.messaging.message.TicketEmailMessage;
+import com.cinema.vncinema.messaging.producer.OrderEventPublisher;
 import com.cinema.vncinema.service.TicketService;
 import com.cinema.vncinema.service.SeatHoldService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class TicketServiceImpl implements TicketService {
     private final SeatTypePriceRepository seatTypePriceRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    private final EmailService emailService;
+    private final OrderEventPublisher orderEventPublisher;
     private final SeatHoldService seatHoldService;
     private final StringRedisTemplate redisTemplate;
 
@@ -250,7 +251,8 @@ public class TicketServiceImpl implements TicketService {
                         .map(Ticket::getPrice)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                TicketEmailDto emailDto = new TicketEmailDto(
+                TicketEmailMessage emailMessage = new TicketEmailMessage(
+                        user.getEmail(),
                         bookingCode,
                         firstTicket.getShowtime().getMovie().getTitle(),
                         firstTicket.getShowtime().getScreenRoom().getCinema().getName(),
@@ -262,8 +264,17 @@ public class TicketServiceImpl implements TicketService {
                         firstTicket.getPaymentMethod()
                 );
 
-                emailService.sendTicketConfirmationEmail(user.getEmail(), emailDto);
-                log.info("Async ticket confirmation email queued for {} (booking: {})", user.getEmail(), bookingCode);
+                if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            orderEventPublisher.publishTicketEmailEvent(emailMessage);
+                        }
+                    });
+                } else {
+                    orderEventPublisher.publishTicketEmailEvent(emailMessage);
+                }
+                log.info("Ticket confirmation email event published for {} (booking: {})", user.getEmail(), bookingCode);
             } else {
                 log.info("No authenticated user – skipping email for booking {}", bookingCode);
             }
