@@ -64,6 +64,17 @@ spring:
           auth: true
           starttls:
             enable: true
+# SpringDoc OpenAPI / Swagger UI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true
+    filter: true
+  default-produces-media-type: application/json
 
 # JWT Security Configurations
 jwt:
