@@ -9,6 +9,7 @@ import com.cinema.vncinema.exception.AppException;
 import com.cinema.vncinema.exception.ErrorCode;
 import com.cinema.vncinema.repository.*;
 import com.cinema.vncinema.messaging.message.TicketEmailMessage;
+import com.cinema.vncinema.messaging.message.TicketExpirationMessage;
 import com.cinema.vncinema.messaging.producer.OrderEventPublisher;
 import com.cinema.vncinema.service.TicketService;
 import com.cinema.vncinema.service.SeatHoldService;
@@ -187,6 +188,20 @@ public class TicketServiceImpl implements TicketService {
                     saved.getBookingCode(),
                     saved.getPaymentMethod()
             ));
+        }
+
+        if (!savedTickets.isEmpty()) {
+            TicketExpirationMessage expirationMsg = new TicketExpirationMessage(bookingCode);
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        orderEventPublisher.publishTicketExpirationHoldEvent(expirationMsg);
+                    }
+                });
+            } else {
+                orderEventPublisher.publishTicketExpirationHoldEvent(expirationMsg);
+            }
         }
 
         return responses;

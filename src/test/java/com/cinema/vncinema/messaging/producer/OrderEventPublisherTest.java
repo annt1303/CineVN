@@ -2,6 +2,7 @@ package com.cinema.vncinema.messaging.producer;
 
 import com.cinema.vncinema.config.RabbitMQConfig;
 import com.cinema.vncinema.messaging.message.TicketEmailMessage;
+import com.cinema.vncinema.messaging.message.TicketExpirationMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,22 @@ class OrderEventPublisherTest {
         verify(rabbitTemplate).convertAndSend(
                 eq(RabbitMQConfig.ORDER_EXCHANGE),
                 eq(RabbitMQConfig.EMAIL_ROUTING_KEY),
+                eq(msg)
+        );
+    }
+
+    @Test
+    void publishTicketExpirationHoldEvent_shouldSendToCorrectQueue() {
+        // given
+        TicketExpirationMessage msg = new TicketExpirationMessage("TIC-HOLD123");
+
+        // when
+        orderEventPublisher.publishTicketExpirationHoldEvent(msg);
+
+        // then
+        verify(rabbitTemplate).convertAndSend(
+                eq(""),
+                eq(RabbitMQConfig.EXPIRATION_HOLD_QUEUE),
                 eq(msg)
         );
     }

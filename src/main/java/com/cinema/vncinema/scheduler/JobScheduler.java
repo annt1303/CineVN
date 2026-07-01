@@ -30,9 +30,9 @@ public class JobScheduler {
     /**
      * Periodically checks for tickets that are PENDING and have expired (created > 10 minutes ago).
      * Automatically sets their status to CANCELLED and broadcasts the seat release via WebSocket.
-     * Runs every 1 minute.
+     * Runs every 10 minutes as a backup safety net.
      */
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 600000)
     @Transactional
     public void cancelExpiredPendingTickets() {
         LocalDateTime expirationTime = LocalDateTime.now().minusMinutes(10);
